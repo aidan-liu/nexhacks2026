@@ -9,10 +9,31 @@ export class Poller {
       log: [],
       status: [],
       chat: [],
-      representatives: []
+      representatives: [],
+      connection: []
     };
     this.pollingInterval = null;
     this.connected = false;
+    this.lastOkAt = 0;
+    this.lastConnectionState = null;
+  }
+
+  updateConnectionState() {
+    const now = Date.now();
+    const connected = this.lastOkAt > 0 && now - this.lastOkAt < 5000;
+    if (connected === this.lastConnectionState) return;
+    this.lastConnectionState = connected;
+    this.connected = connected;
+    this.emit('connection', connected);
+  }
+
+  markOk() {
+    this.lastOkAt = Date.now();
+    this.updateConnectionState();
+  }
+
+  markError() {
+    this.updateConnectionState();
   }
 
   /**
@@ -51,8 +72,10 @@ export class Poller {
       if (!res.ok) throw new Error('representatives fetch failed');
       const data = await res.json();
       this.emit('representatives', data);
+      this.markOk();
       return data;
     } catch (error) {
+      this.markError();
       console.error('Failed to fetch representatives:', error);
       return [];
     }
@@ -72,10 +95,10 @@ export class Poller {
       }
 
       this.logIndex = data.nextIndex || this.logIndex;
-      this.connected = true;
+      this.markOk();
       return data;
     } catch (error) {
-      this.connected = false;
+      this.markError();
       console.error('Log fetch error:', error);
       return null;
     }
@@ -90,10 +113,10 @@ export class Poller {
       if (!res.ok) throw new Error('status fetch failed');
       const data = await res.json();
       this.emit('status', data);
-      this.connected = true;
+      this.markOk();
       return data;
     } catch (error) {
-      this.connected = false;
+      this.markError();
       console.error('Status fetch error:', error);
       return null;
     }
@@ -113,8 +136,10 @@ export class Poller {
       }
 
       this.chatIndex = data.nextIndex || this.chatIndex;
+      this.markOk();
       return data;
     } catch (error) {
+      this.markError();
       console.error('Chat fetch error:', error);
       return null;
     }
@@ -187,6 +212,7 @@ export class Poller {
    * Check if connected
    */
   isConnected() {
+    this.updateConnectionState();
     return this.connected;
   }
 }

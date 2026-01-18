@@ -5,6 +5,7 @@ Minimal simulation scaffold for routing bills to agencies and running a floor de
 ## Quick start
 - Put your bill text at `config/bill.txt` (or set `SIM_BILL_PATH`).
 - Update agencies and reps in `config/agencies.json` and `config/representatives.json`.
+- Set `SIM_OPENROUTER_API_KEY` (and optionally `SIM_MODEL`).
 - Run:
 
 ```bash
@@ -17,8 +18,11 @@ Output:
 
 ## Config
 Environment overrides (optional):
-- `SIM_OLLAMA_URL` (default `http://localhost:11434`)
-- `SIM_MODEL` (default `gemma2:2b`)
+- `SIM_OPENROUTER_API_KEY` (or `OPENROUTER_API_KEY`) (required)
+- `SIM_OPENROUTER_BASE_URL` (default `https://openrouter.ai/api/v1`)
+- `SIM_OPENROUTER_HTTP_REFERER` (optional, recommended by OpenRouter)
+- `SIM_OPENROUTER_X_TITLE` (optional, recommended by OpenRouter)
+- `SIM_MODEL` (default `x-ai/grok-4.1-fast`, any OpenRouter model id)
 - `SIM_NUM_PREDICT` (default `600`)
 - `SIM_SERVER_PORT` (default `8080`)
 - `SIM_MAX_REVISIONS` (default `1`)

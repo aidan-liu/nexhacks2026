@@ -5,8 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>GovSim Parliament</title>
   <link rel="stylesheet" href="/static/css/parliament.css" />
-  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
+  
+  <!-- Import Map -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+
+  <!-- GSAP -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 </head>
 <body>
   <div id="app">
@@ -59,6 +70,41 @@
       <div class="bubble-content"></div>
       <div class="bubble-arrow"></div>
     </div>
+
+    <!-- Representative Data Card -->
+    <aside id="rep-card" class="rep-card hidden">
+      <div class="card-close" id="cardClose">&times;</div>
+      <div class="card-header">
+        <div class="card-portrait" id="cardPortrait">
+          <span id="cardInitials">??</span>
+        </div>
+        <div class="card-info">
+          <h2 id="cardName">Representative Name</h2>
+          <span id="cardParty" class="party-badge">Party</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-section">
+          <h3>Recent Activity</h3>
+          <div id="cardActivity" class="activity-list">
+            <p class="no-data">No recent activity</p>
+          </div>
+        </div>
+        <div class="card-section">
+          <h3>Voting History</h3>
+          <div id="cardVoting" class="voting-summary">
+            <div class="vote-stat">
+              <span class="vote-label">YES Votes</span>
+              <span class="vote-count yes" id="cardYesCount">0</span>
+            </div>
+            <div class="vote-stat">
+              <span class="vote-label">NO Votes</span>
+              <span class="vote-count no" id="cardNoCount">0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
   </div>
 
   <script type="module" src="/static/js/main.js"></script>

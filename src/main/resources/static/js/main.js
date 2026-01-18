@@ -28,8 +28,19 @@ class App {
     this.transcriptToggle = document.getElementById('transcriptToggle');
     this.logPanel = document.getElementById('log-panel');
 
+    // Data card elements
+    this.repCard = document.getElementById('rep-card');
+    this.cardClose = document.getElementById('cardClose');
+    this.cardName = document.getElementById('cardName');
+    this.cardParty = document.getElementById('cardParty');
+    this.cardInitials = document.getElementById('cardInitials');
+    this.cardActivity = document.getElementById('cardActivity');
+    this.cardYesCount = document.getElementById('cardYesCount');
+    this.cardNoCount = document.getElementById('cardNoCount');
+
     this.speechTimeout = null;
     this.transcriptionVisible = true;
+    this.hasReceivedStatus = false;
   }
 
   async init() {
@@ -42,6 +53,7 @@ class App {
 
     // Setup scene callbacks
     this.scene.onRepHover = (data, x, y) => this.showTooltip(data, x, y);
+    this.scene.onRepClick = (data) => this.showDataCard(data);
 
     // Fetch representatives and load into scene
     const reps = await this.poller.fetchRepresentatives();
@@ -55,11 +67,14 @@ class App {
     this.eventParser.on('voting', (data) => this.handleVoting(data));
     this.eventParser.on('decision', (data) => this.handleDecision(data));
     this.eventParser.on('phase', (data) => this.handlePhase(data));
+    this.eventParser.on('lobbying', (data) => this.handleLobbying(data));
+    this.eventParser.on('meeting', (data) => this.handleMeeting(data));
 
     // Setup poller handlers
     this.poller.on('log', (lines) => this.handleLogLines(lines));
     this.poller.on('status', (data) => this.handleStatus(data));
     this.poller.on('chat', (messages) => this.handleChatMessages(messages));
+    this.poller.on('connection', (connected) => this.handleConnection(connected));
 
     // Setup UI event handlers
     this.setupUIHandlers();
@@ -92,6 +107,9 @@ class App {
 
     // Transcription toggle button
     this.transcriptToggle.addEventListener('click', () => this.toggleTranscription());
+
+    // Data card close button
+    this.cardClose.addEventListener('click', () => this.hideDataCard());
   }
 
   toggleTranscription() {
@@ -132,12 +150,27 @@ class App {
     this.eventParser.parseLines(lines);
 
     // Update connection status
-    this.statusBadge.textContent = this.poller.isConnected() ? 'Connected' : 'Disconnected';
+    if (!this.hasReceivedStatus) {
+      this.statusBadge.textContent = this.poller.isConnected() ? 'Connected' : 'Disconnected';
+    }
+  }
+
+  handleConnection(connected) {
+    if (!connected) {
+      this.statusBadge.textContent = 'Disconnected';
+      this.statusBadge.classList.remove('voting');
+      return;
+    }
+
+    if (!this.hasReceivedStatus) {
+      this.statusBadge.textContent = 'Connected';
+    }
   }
 
   handleStatus(data) {
     const open = !!data.open;
     const total = data.yes + data.no;
+    this.hasReceivedStatus = true;
 
     // Update status badge
     if (open) {
@@ -203,6 +236,18 @@ class App {
     console.log('Phase change:', data.phase);
   }
 
+  handleLobbying(data) {
+    if (this.scene) {
+      this.scene.handleLobbying?.(data.lobbyist, data.target, data.message || '');
+    }
+  }
+
+  handleMeeting(data) {
+    if (this.scene) {
+      this.scene.handleMeeting?.(data.a, data.b, data.aCommittee, data.bCommittee);
+    }
+  }
+
   showTooltip(data, x, y) {
     if (!data) {
       this.tooltip.classList.add('hidden');
@@ -211,10 +256,12 @@ class App {
 
     const partyClass = data.party.replace(/\s+/g, '');
     const issues = data.petIssues ? data.petIssues.join(', ') : '';
+    const committee = data.committeeName ? String(data.committeeName) : '';
 
     this.tooltip.innerHTML = `
       <div class="name">${this.escapeHtml(data.name)}</div>
       <div class="party ${partyClass}">${this.escapeHtml(data.party)}</div>
+      ${committee ? `<div class="issues">Committee: ${this.escapeHtml(committee)}</div>` : ''}
       <div class="issues">Focus: ${this.escapeHtml(issues)}</div>
     `;
 
@@ -262,6 +309,55 @@ class App {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+  }
+
+  /**
+   * Show representative data card
+   */
+  showDataCard(data) {
+    if (!data) return;
+
+    // Set name
+    this.cardName.textContent = data.name;
+
+    // Set party with proper class
+    const partyClass = data.party.replace(/\s+/g, '');
+    this.cardParty.textContent = data.party;
+    this.cardParty.className = `party-badge ${partyClass || 'default'}`;
+
+    // Set initials
+    const names = data.name.split(' ');
+    const initials = names.length >= 2
+      ? (names[0][0] + names[names.length - 1][0]).toUpperCase()
+      : (names[0][0] + (names[0][1] || '')).toUpperCase();
+    this.cardInitials.textContent = initials;
+
+    // Update voting stats (placeholder - would need real data)
+    const yesCount = Math.floor(Math.random() * 50) + 10;
+    const noCount = Math.floor(Math.random() * 30) + 5;
+    this.cardYesCount.textContent = yesCount;
+    this.cardNoCount.textContent = noCount;
+
+    // Set recent activity
+    const issues = data.petIssues || ['No specific issues'];
+    const committee = data.committeeName ? `<p>Committee: ${this.escapeHtml(String(data.committeeName))}</p>` : '';
+    this.cardActivity.innerHTML = `${committee}<p>Focus: ${this.escapeHtml(issues.join(', '))}</p>`;
+
+    // Show card
+    this.repCard.classList.remove('hidden');
+    this.repCard.classList.add('visible');
+  }
+
+  /**
+   * Hide representative data card
+   */
+  hideDataCard() {
+    this.repCard.classList.remove('visible');
+    this.repCard.classList.add('hidden');
+    // Also reset camera view
+    if (this.scene) {
+      this.scene.resetView();
+    }
   }
 }
 

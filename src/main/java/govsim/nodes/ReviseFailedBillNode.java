@@ -108,6 +108,7 @@ No extra keys. No markdown.
     state.floorSummary = "";
     state.lastTurnOutputs.clear();
     state.voteResult = null;
+    state.directMessagesByRepId.clear();
     state.vars.put("finalOutcome", "REVISED_PENDING");
     state.vars.put("rerunFromNode", "CommitteeDeliberation");
   }

@@ -35,8 +35,9 @@ public class CommitteeDeliberationNode implements Node {
     for (String repId : agency.representativeIds()) {
       var rep = registry.repById(repId);
       SimulationLogger.log("[Committee] " + agency.name() + " -> " + rep.name());
+      Map<String, String> inbox = state.directMessagesByRepId.getOrDefault(repId, Map.of());
       AgentContext ctx = new AgentContext(state.bill, state.billOnePager, state.floorSummary,
-          Map.of(), state.vars);
+          inbox, state.vars);
       AgentOutput out = rep.act(ctx);
       String reason = out.reasons.stream().findFirst().orElse("");
       if (!reason.isBlank()) {

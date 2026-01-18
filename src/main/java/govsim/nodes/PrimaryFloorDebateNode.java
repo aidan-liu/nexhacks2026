@@ -40,7 +40,8 @@ public class PrimaryFloorDebateNode implements Node {
       var advocate = registry.repById(advocateId);
       if (advocate != null) {
         SimulationLogger.log("[Advocate] " + advocate.name() + " is advocating for the bill...");
-        AgentContext advocateCtx = new AgentContext(state.bill, state.billOnePager, summary, Map.of(), state.vars);
+        Map<String, String> advocateInbox = state.directMessagesByRepId.getOrDefault(advocateId, Map.of());
+        AgentContext advocateCtx = new AgentContext(state.bill, state.billOnePager, summary, advocateInbox, state.vars);
         advocateOutput = advocate.advocate(advocateCtx);
         SimulationLogger.log("[Advocate] " + advocate.name() + ": " + advocateOutput.speech);
         String reason = advocateOutput.reasons.stream().findFirst().orElse("");
@@ -67,7 +68,8 @@ public class PrimaryFloorDebateNode implements Node {
       var rep = registry.repById(repId);
       if (rep == null) continue;
       SimulationLogger.log("[Floor] " + agency.name() + " -> " + rep.name() + " is taking the floor...");
-      AgentContext ctx = new AgentContext(state.bill, state.billOnePager, summary, Map.of(), state.vars);
+      Map<String, String> inbox = state.directMessagesByRepId.getOrDefault(repId, Map.of());
+      AgentContext ctx = new AgentContext(state.bill, state.billOnePager, summary, inbox, state.vars);
       AgentOutput out;
       if (repId.equals(advocateId) && advocateOutput != null) {
         out = advocateOutput;

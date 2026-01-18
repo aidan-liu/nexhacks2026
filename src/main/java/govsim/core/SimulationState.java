@@ -22,9 +22,13 @@ public class SimulationState {
   public VoteResult voteResult;
 
   public InteractionLog interactionLog = new InteractionLog();
+  public RelationshipLog relationshipLog = new RelationshipLog();
   public LogStore logStore;
   public VoteBox voteBox;
   public PollingServer pollingServer;
   public ChatStore chatStore;
   public Map<String, Object> vars = new HashMap<>();
+
+  // Per-representative inbox of direct messages from other reps (senderName -> message).
+  public Map<String, Map<String, String>> directMessagesByRepId = new HashMap<>();
 }

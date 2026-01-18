@@ -12,6 +12,7 @@ public class PromptBuilder {
   public String buildPoliticianTurnPrompt(PoliticianAgent agent, PoliticianProfile profile,
                                          AgentContext ctx, String memory) {
     String factsPack = factsPack(ctx);
+    String directMessages = formatDirectMessages(ctx);
     return """
 You are %s, a government representative.
 
@@ -28,6 +29,9 @@ BILL ONE-PAGER:
 FLOOR SUMMARY:
 %s
 
+DIRECT MESSAGES FROM OTHER REPS:
+%s
+
 YOUR MEMORY:
 %s
 
@@ -42,14 +46,16 @@ Keep speech 120-180 words. reasons must have 2-4 items, each 1-2 sentences.
 proposedAmendments max 2 items. targetsToLobby max 2 items.
 Include at least one concrete statistic in the speech or reasons if possible.
 When you use a fact, explicitly mention its source and add 1-2 sentences of context or impact.
+If possible, use your memory of committee memberships when selecting targetsToLobby.
 No extra keys. No markdown.
 """.formatted(agent.name(), profile.party, profile.ideology, profile.redLines, profile.petIssues, profile.speakingStyle,
-              ctx.billOnePager, ctx.floorSummary, memory, factsPack);
+              ctx.billOnePager, ctx.floorSummary, directMessages, memory, factsPack);
   }
 
   public String buildAdvocatePrompt(PoliticianAgent agent, PoliticianProfile profile,
                                     AgentContext ctx, String memory) {
     String factsPack = factsPack(ctx);
+    String directMessages = formatDirectMessages(ctx);
     return """
 You are %s, the bill advocate on the primary floor. Your job is to clearly explain the bill,
 highlight its strongest benefits, and persuade others to support it.
@@ -67,6 +73,9 @@ BILL ONE-PAGER:
 FLOOR SUMMARY:
 %s
 
+DIRECT MESSAGES FROM OTHER REPS:
+%s
+
 YOUR MEMORY:
 %s
 
@@ -81,9 +90,10 @@ Keep speech 120-180 words. reasons must have 2-4 items, each 1-2 sentences.
 proposedAmendments max 2 items. targetsToLobby max 2 items.
 Include at least one concrete statistic in the speech or reasons if possible.
 When you use a fact, explicitly mention its source and add 1-2 sentences of context or impact.
+If possible, use your memory of committee memberships when selecting targetsToLobby.
 No extra keys. No markdown.
 """.formatted(agent.name(), profile.party, profile.ideology, profile.redLines, profile.petIssues, profile.speakingStyle,
-        ctx.billOnePager, ctx.floorSummary, memory, factsPack);
+        ctx.billOnePager, ctx.floorSummary, directMessages, memory, factsPack);
   }
 
   public String buildJudgePrompt(AgentContext ctx, Collection<Agency> agencies) {
@@ -112,5 +122,20 @@ No extra keys. Use selectedAgencyId exactly as listed above.
     if (facts == null) return "(no facts provided)";
     String text = facts.toString().trim();
     return text.isBlank() ? "(no facts provided)" : text;
+  }
+
+  private String formatDirectMessages(AgentContext ctx) {
+    if (ctx.directMessages == null || ctx.directMessages.isEmpty()) {
+      return "(none)";
+    }
+    StringBuilder sb = new StringBuilder();
+    for (var entry : ctx.directMessages.entrySet()) {
+      String from = entry.getKey() == null ? "" : entry.getKey().trim();
+      String msg = entry.getValue() == null ? "" : entry.getValue().trim();
+      if (from.isBlank() || msg.isBlank()) continue;
+      sb.append("- ").append(from).append(": ").append(msg).append("\n");
+    }
+    String out = sb.toString().trim();
+    return out.isBlank() ? "(none)" : out;
   }
 }

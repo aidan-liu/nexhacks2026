@@ -8,7 +8,8 @@ export class EventParser {
       voting: [],
       decision: [],
       phase: [],
-      lobbying: []
+      lobbying: [],
+      meeting: []
     };
   }
 
@@ -38,6 +39,7 @@ export class EventParser {
     // Patterns: "[NAME] speaks:", "NAME:", "[NAME] argues:", etc.
     const speakingPatterns = [
       /^\[([^\]]+)\]\s*(speaks|argues|states|responds|replies|says):/i,
+      /^\[Advocate\]\s+([^:]+)\s*:/i,
       /^(?:Rep\.|Representative)\s+([^:]+):/i,
       /^([A-Z][a-z]+\s+[A-Z][a-z]+)(?:\s+\([^)]+\))?\s*:/
     ];
@@ -110,15 +112,44 @@ export class EventParser {
 
     // Detect lobbying
     const lobbyPatterns = [
-      /^\[?([^\]]+)\]?\s+(?:lobbies|approaches|persuades)\s+\[?([^\]]+)\]?/i
+      /^\[?([^\]]+)\]?\s+(?:lobbies|approaches|persuades)\s+\[?([^\]]+)\]?(?::\s*(.*))?/i,
+      /^\[Lobby\]\s+(.+?)\s*->\s*(.+)$/i
     ];
 
     for (const pattern of lobbyPatterns) {
       const match = line.match(pattern);
       if (match) {
+        if (pattern.source.startsWith('^\\[Lobby\\]')) {
+          this.emit('lobbying', {
+            lobbyist: match[1].trim(),
+            target: match[2].trim(),
+            message: ''
+          });
+          return;
+        }
+
         this.emit('lobbying', {
           lobbyist: match[1].trim(),
-          target: match[2].trim()
+          target: match[2].trim(),
+          message: (match[3] || '').trim()
+        });
+        return;
+      }
+    }
+
+    // Detect introductions / committee-sharing
+    const meetPatterns = [
+      /^\[Meet\]\s+(.+?)\s+meets\s+(.+?)\s+\(committees:\s+(.+?)\s*\/\s*(.+?)\)\s*$/i
+    ];
+
+    for (const pattern of meetPatterns) {
+      const match = line.match(pattern);
+      if (match) {
+        this.emit('meeting', {
+          a: match[1].trim(),
+          b: match[2].trim(),
+          aCommittee: match[3].trim(),
+          bCommittee: match[4].trim()
         });
         return;
       }

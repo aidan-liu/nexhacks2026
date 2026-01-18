@@ -5,6 +5,7 @@ import govsim.llm.LLMRequestOptions;
 import govsim.llm.PromptBuilder;
 import govsim.memory.MemoryStore;
 import govsim.core.SimulationLogger;
+import govsim.web.AgentStateStore;
 
 public class PoliticianAgent extends Agent {
   private final PoliticianProfile profile;
@@ -35,6 +36,12 @@ public class PoliticianAgent extends Agent {
     String prompt = advocateMode
         ? prompts.buildAdvocatePrompt(this, profile, ctx, mem)
         : prompts.buildPoliticianTurnPrompt(this, profile, ctx, mem);
+
+    Object storeObj = ctx.runtime.get("agentStateStore");
+    if (storeObj instanceof AgentStateStore store) {
+      store.recordMemory(id, mem);
+      store.recordPrompt(id, prompt);
+    }
 
     String json = llm.generateJson(prompt, LLMRequestOptions.withNumPredict(NUM_PREDICT_DEFAULT));
     try {

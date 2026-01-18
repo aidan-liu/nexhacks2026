@@ -7,7 +7,9 @@ import govsim.agents.PoliticianProfile;
 import govsim.domain.Agency;
 import govsim.llm.LLMClient;
 import govsim.llm.PromptBuilder;
+import govsim.memory.RelationshipMemoryStore;
 import govsim.memory.SimpleMemoryStore;
+import govsim.memory.SocialGraph;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -20,6 +22,10 @@ import java.util.Set;
 
 public class AgentFactory {
   public static AgentRegistry buildAllAgents(SimulationConfig config, LLMClient llm) throws IOException {
+    return buildAllAgents(config, llm, new PromptBuilder());
+  }
+
+  public static AgentRegistry buildAllAgents(SimulationConfig config, LLMClient llm, PromptBuilder prompts) throws IOException {
     ObjectMapper mapper = new ObjectMapper();
     List<AgencyConfig> agencyConfigs = Arrays.asList(mapper.readValue(
         Files.readString(Path.of(config.agenciesPath())), AgencyConfig[].class));
@@ -32,8 +38,9 @@ public class AgentFactory {
     }
 
     Map<String, Agency> agencies = new HashMap<>();
-    PromptBuilder prompts = new PromptBuilder();
     Map<String, PoliticianAgent> repAgents = new HashMap<>();
+    Map<String, String> committeeIdByRepId = new HashMap<>();
+    SocialGraph socialGraph = new SocialGraph();
 
     for (AgencyConfig agencyCfg : agencyConfigs) {
       if (agencyCfg.representativeIds == null || agencyCfg.representativeIds.size() != 3) {
@@ -48,6 +55,7 @@ public class AgentFactory {
       agencies.put(agency.id(), agency);
 
       for (String repId : agency.representativeIds()) {
+        committeeIdByRepId.put(repId, agency.id());
         if (repAgents.containsKey(repId)) continue;
         RepresentativeConfig rc = repsById.get(repId);
         if (rc == null) {
@@ -64,16 +72,24 @@ public class AgentFactory {
             rc.id,
             rc.name,
             profile,
-            new SimpleMemoryStore(),
+            new RelationshipMemoryStore(
+                new SimpleMemoryStore(),
+                socialGraph,
+                rc.id,
+                rc.name,
+                agency.id(),
+                agency.name()
+            ),
             llm,
             prompts
         );
+        socialGraph.registerRepresentative(rc.id, rc.name, agency.id(), agency.name());
         repAgents.put(repId, agent);
       }
     }
 
     JudgeAgent judge = new JudgeAgent(llm, prompts);
-    return new AgentRegistry(agencies, repAgents, judge);
+    return new AgentRegistry(agencies, repAgents, judge, socialGraph, committeeIdByRepId);
   }
 
   private static class AgencyConfig {

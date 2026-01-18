@@ -1,9 +1,12 @@
 package govsim.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import govsim.llm.CompressionMetrics;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -22,12 +25,27 @@ public class PollingServer {
   private final LogStore logStore;
   private final VoteBox voteBox;
   private final ChatStore chatStore;
+  private final AgentStateStore agentStateStore;
+  private final CompressionMetrics compressionMetrics;
   private final ObjectMapper mapper = new ObjectMapper();
 
   public PollingServer(int port, LogStore logStore, VoteBox voteBox, ChatStore chatStore) throws IOException {
+    this(port, logStore, voteBox, chatStore, null, null);
+  }
+
+  public PollingServer(int port, LogStore logStore, VoteBox voteBox, ChatStore chatStore, AgentStateStore agentStateStore)
+      throws IOException {
+    this(port, logStore, voteBox, chatStore, agentStateStore, null);
+  }
+
+  public PollingServer(int port, LogStore logStore, VoteBox voteBox, ChatStore chatStore,
+                       AgentStateStore agentStateStore, CompressionMetrics compressionMetrics)
+      throws IOException {
     this.logStore = logStore;
     this.voteBox = voteBox;
     this.chatStore = chatStore;
+    this.agentStateStore = agentStateStore;
+    this.compressionMetrics = compressionMetrics;
     this.server = HttpServer.create(new InetSocketAddress(port), 0);
     this.server.setExecutor(Executors.newCachedThreadPool());
     this.server.createContext("/", this::handleIndex);
@@ -37,6 +55,8 @@ public class PollingServer {
     this.server.createContext("/status", this::handleStatus);
     this.server.createContext("/vote", this::handleVote);
     this.server.createContext("/chat", this::handleChat);
+    this.server.createContext("/agent-state", this::handleAgentState);
+    this.server.createContext("/compression-metrics", this::handleCompressionMetrics);
   }
 
   public void start() {
@@ -74,9 +94,18 @@ public class PollingServer {
       resourcePath = "/index.html";
     }
 
-    // Try loading from classpath (src/main/resources/static/)
-    String classpathResource = "/static" + resourcePath;
-    InputStream is = getClass().getResourceAsStream(classpathResource);
+    InputStream is = null;
+
+    // First try loading from filesystem (for development)
+    String fsPath = "src/main/resources/static" + resourcePath;
+    File file = new File(fsPath);
+    if (file.exists() && file.isFile()) {
+      is = new FileInputStream(file);
+    } else {
+      // Fall back to classpath (for production)
+      String classpathResource = "/static" + resourcePath;
+      is = getClass().getResourceAsStream(classpathResource);
+    }
 
     if (is == null) {
       exchange.sendResponseHeaders(404, -1);
@@ -94,6 +123,7 @@ public class PollingServer {
     else if (resourcePath.endsWith(".png")) contentType = "image/png";
     else if (resourcePath.endsWith(".svg")) contentType = "image/svg+xml";
     else if (resourcePath.endsWith(".json")) contentType = "application/json; charset=utf-8";
+    else if (resourcePath.endsWith(".glb")) contentType = "model/gltf-binary";
 
     exchange.getResponseHeaders().add("Content-Type", contentType);
     exchange.getResponseHeaders().add("Cache-Control", "no-store");
@@ -108,19 +138,52 @@ public class PollingServer {
       exchange.sendResponseHeaders(405, -1);
       return;
     }
-    // Read representatives.json from config/
+    // Read representatives.json from config/ and enrich with committee membership derived from agencies.json.
     Path repsPath = Path.of("config/representatives.json");
     if (!Files.exists(repsPath)) {
       exchange.sendResponseHeaders(404, -1);
       return;
     }
-    byte[] body = Files.readAllBytes(repsPath);
-    exchange.getResponseHeaders().add("Content-Type", "application/json; charset=utf-8");
-    exchange.getResponseHeaders().add("Cache-Control", "no-store");
-    exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
-    exchange.sendResponseHeaders(200, body.length);
-    try (OutputStream out = exchange.getResponseBody()) {
-      out.write(body);
+    Path agenciesPath = Path.of("config/agencies.json");
+    try {
+      List<Map<String, Object>> reps = mapper.readValue(Files.readString(repsPath), List.class);
+      Map<String, Map<String, String>> committeeByRepId = new HashMap<>();
+      if (Files.exists(agenciesPath)) {
+        List<Map<String, Object>> agencies = mapper.readValue(Files.readString(agenciesPath), List.class);
+        for (Map<String, Object> agency : agencies) {
+          String committeeId = String.valueOf(agency.getOrDefault("id", "")).trim();
+          String committeeName = String.valueOf(agency.getOrDefault("name", "")).trim();
+          Object repIds = agency.get("representativeIds");
+          if (!(repIds instanceof List<?> list)) continue;
+          for (Object rid : list) {
+            if (rid == null) continue;
+            committeeByRepId.put(String.valueOf(rid), Map.of(
+                "committeeId", committeeId,
+                "committeeName", committeeName
+            ));
+          }
+        }
+      }
+
+      for (Map<String, Object> rep : reps) {
+        Object id = rep.get("id");
+        if (id == null) continue;
+        Map<String, String> committee = committeeByRepId.get(String.valueOf(id));
+        if (committee == null) continue;
+        rep.putAll(committee);
+      }
+
+      writeJson(exchange, reps);
+    } catch (Exception e) {
+      // Fallback to raw file if enrichment fails.
+      byte[] body = Files.readAllBytes(repsPath);
+      exchange.getResponseHeaders().add("Content-Type", "application/json; charset=utf-8");
+      exchange.getResponseHeaders().add("Cache-Control", "no-store");
+      exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+      exchange.sendResponseHeaders(200, body.length);
+      try (OutputStream out = exchange.getResponseBody()) {
+        out.write(body);
+      }
     }
   }
 
@@ -214,6 +277,44 @@ public class PollingServer {
     }
 
     exchange.sendResponseHeaders(405, -1);
+  }
+
+  private void handleAgentState(HttpExchange exchange) throws IOException {
+    if (!"GET".equalsIgnoreCase(exchange.getRequestMethod())) {
+      exchange.sendResponseHeaders(405, -1);
+      return;
+    }
+    if (agentStateStore == null) {
+      exchange.sendResponseHeaders(404, -1);
+      return;
+    }
+    URI uri = exchange.getRequestURI();
+    String include = getParam(uri.getQuery(), "includePrompts");
+    boolean includePrompts = "1".equals(include) || "true".equalsIgnoreCase(include);
+    writeJson(exchange, agentStateStore.snapshot(includePrompts));
+  }
+
+  private void handleCompressionMetrics(HttpExchange exchange) throws IOException {
+    if (!"GET".equalsIgnoreCase(exchange.getRequestMethod())) {
+      exchange.sendResponseHeaders(405, -1);
+      return;
+    }
+    if (compressionMetrics == null) {
+      // Return empty metrics if compression is not enabled
+      Map<String, Object> emptyMetrics = new HashMap<>();
+      emptyMetrics.put("totalCompressions", 0);
+      emptyMetrics.put("totalOriginalTokens", 0);
+      emptyMetrics.put("totalCompressedTokens", 0);
+      emptyMetrics.put("averageCompressionRatio", 0.0);
+      emptyMetrics.put("averageLatencyMs", 0.0);
+      emptyMetrics.put("cacheHitRate", 0.0);
+      emptyMetrics.put("totalTokensSaved", 0);
+      emptyMetrics.put("costSavingsUsd", 0.0);
+      emptyMetrics.put("byContextType", new HashMap<>());
+      writeJson(exchange, emptyMetrics);
+      return;
+    }
+    writeJson(exchange, compressionMetrics.getSnapshot());
   }
 
   private void writeJson(HttpExchange exchange, Object payload) throws IOException {
@@ -450,5 +551,4 @@ public class PollingServer {
 """;
   }
 }
-
 
