@@ -768,6 +768,9 @@ public class PollingServer {
     let repsLoaded = false;
     let lastStage = '';
     let lastStageRunning = false;
+    let speechToken = 0;
+    let speechTimer = null;
+    let lastSpeechText = '';
     const ambientLines = [
       'We need a clean funding baseline.',
       'Constituents want accountability.',
@@ -1491,13 +1494,65 @@ public class PollingServer {
       const speakerText = data.currentSpeakerText || '';
       currentSpeaker.textContent = speakerId ? `${speakerName} speaking` : 'Waiting for speaker...';
       if (currentSpeech) {
-        currentSpeech.textContent = speakerText || '';
-        currentSpeech.classList.toggle('hidden', !speakerId || !speakerText);
+        const hasSpeech = !!(speakerId && speakerText);
+        currentSpeech.classList.toggle('hidden', !hasSpeech);
+        if (!hasSpeech) {
+          stopSpeechTyping();
+        } else if (speakerText !== lastSpeechText) {
+          startSpeechTyping(speakerText);
+          lastSpeechText = speakerText;
+        }
       }
       currentSpeakerId = speakerId;
       if (scene3d) {
         scene3d.setCurrentSpeaker(speakerId);
       }
+    }
+
+    function stopSpeechTyping() {
+      speechToken += 1;
+      if (speechTimer) {
+        clearTimeout(speechTimer);
+        speechTimer = null;
+      }
+      if (currentSpeech) {
+        currentSpeech.textContent = '';
+      }
+      lastSpeechText = '';
+    }
+
+    function startSpeechTyping(text) {
+      speechToken += 1;
+      const token = speechToken;
+      if (!currentSpeech) return;
+      if (speechTimer) {
+        clearTimeout(speechTimer);
+        speechTimer = null;
+      }
+      currentSpeech.textContent = '';
+      const words = text.trim().split(/\s+/).filter(Boolean);
+      if (!words.length) return;
+
+      const targetDuration = Math.min(8000, Math.max(2000, words.length * 140));
+      const baseInterval = Math.max(40, Math.min(220, targetDuration / words.length));
+      let index = 0;
+
+      const step = () => {
+        if (token !== speechToken) return;
+        const word = words[index];
+        currentSpeech.textContent += (index === 0 ? '' : ' ') + word;
+        index += 1;
+        if (index >= words.length) {
+          speechTimer = null;
+          return;
+        }
+        let delay = baseInterval;
+        if (/[,.!?;:]$/.test(word)) {
+          delay += 140;
+        }
+        speechTimer = setTimeout(step, delay);
+      };
+      step();
     }
 
     function maybeCelebrate(outcome) {
