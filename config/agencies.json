@@ -1,0 +1,62 @@
+[
+  {
+    "id": "energy",
+    "name": "Energy Infrastructure Agency",
+    "scopeKeywords": ["grid", "energy", "storage", "resilience", "utility", "power"],
+    "representativeIds": ["rep-energy-1", "rep-energy-2", "rep-energy-3"]
+  },
+  {
+    "id": "budget",
+    "name": "Budget Oversight Agency",
+    "scopeKeywords": ["cost", "tax", "spending", "deficit", "budget", "appropriations"],
+    "representativeIds": ["rep-budget-1", "rep-budget-2", "rep-budget-3"]
+  },
+  {
+    "id": "health-social",
+    "name": "Health and Social Programs Agency",
+    "scopeKeywords": ["healthcare", "public health", "benefits", "nutrition", "inequality"],
+    "representativeIds": ["rep-dem-3", "rep-dem-6", "rep-ind-1"]
+  },
+  {
+    "id": "consumer-competition",
+    "name": "Consumer and Competition Agency",
+    "scopeKeywords": ["antitrust", "competition", "consumer", "pricing", "monopoly", "big tech"],
+    "representativeIds": ["rep-dem-1", "rep-gop-7", "rep-ind-3"]
+  },
+  {
+    "id": "industry-workforce",
+    "name": "Industry and Workforce Agency",
+    "scopeKeywords": ["manufacturing", "jobs", "workforce", "training", "supply chain", "industrial policy"],
+    "representativeIds": ["rep-dem-4", "rep-dem-5", "rep-dem-7"]
+  },
+  {
+    "id": "climate-environment",
+    "name": "Climate and Environment Agency",
+    "scopeKeywords": ["climate", "emissions", "environment", "disaster", "clean energy", "carbon"],
+    "representativeIds": ["rep-dem-8", "rep-ind-4", "rep-gop-9"]
+  },
+  {
+    "id": "security-judiciary",
+    "name": "Security and Judiciary Agency",
+    "scopeKeywords": ["security", "defense", "border", "judiciary", "law", "national security"],
+    "representativeIds": ["rep-gop-3", "rep-dem-9", "rep-gop-5"]
+  },
+  {
+    "id": "governance-oversight",
+    "name": "Governance and Oversight Agency",
+    "scopeKeywords": ["oversight", "transparency", "ethics", "procurement", "accountability", "governance"],
+    "representativeIds": ["rep-dem-10", "rep-gop-1", "rep-gop-6"]
+  },
+  {
+    "id": "constitutional-liberty",
+    "name": "Constitutional and Civil Liberty Agency",
+    "scopeKeywords": ["constitution", "civil liberties", "rights", "speech", "religion", "gun"],
+    "representativeIds": ["rep-gop-2", "rep-gop-4", "rep-ind-2"]
+  },
+  {
+    "id": "rural-development",
+    "name": "Rural Development Agency",
+    "scopeKeywords": ["rural", "agriculture", "broadband", "veterans", "local infrastructure", "small towns"],
+    "representativeIds": ["rep-gop-8", "rep-gop-10", "rep-dem-2"]
+  }
+]

@@ -1,0 +1,272 @@
+[
+  {
+    "id": "rep-energy-1",
+    "name": "Lisa Murkowski",
+    "party": "Republican",
+    "ideology": {"econ": 0.4, "social": -0.1},
+    "redLines": ["no one-size-fits-all energy mandates", "no blanket bans on domestic energy production"],
+    "petIssues": ["energy security", "Alaska infrastructure"],
+    "speakingStyle": "measured, pragmatic"
+  },
+  {
+    "id": "rep-energy-2",
+    "name": "Ed Markey",
+    "party": "Democrat",
+    "ideology": {"econ": -0.4, "social": 0.7},
+    "redLines": ["no rollback of environmental standards", "no new fossil subsidies"],
+    "petIssues": ["climate resilience", "clean energy"],
+    "speakingStyle": "urgent, policy-heavy"
+  },
+  {
+    "id": "rep-energy-3",
+    "name": "Cory Booker",
+    "party": "Democrat",
+    "ideology": {"econ": -0.2, "social": 0.6},
+    "redLines": ["no weakening of civil rights protections", "no cuts to safety net programs"],
+    "petIssues": ["criminal justice reform", "urban infrastructure"],
+    "speakingStyle": "optimistic, collaborative"
+  },
+  {
+    "id": "rep-budget-1",
+    "name": "Mitch McConnell",
+    "party": "Republican",
+    "ideology": {"econ": 0.6, "social": -0.4},
+    "redLines": ["no broad tax increases", "no major entitlement expansions"],
+    "petIssues": ["judicial appointments", "fiscal restraint"],
+    "speakingStyle": "reserved, procedural"
+  },
+  {
+    "id": "rep-budget-2",
+    "name": "Chuck Schumer",
+    "party": "Democrat",
+    "ideology": {"econ": -0.2, "social": 0.4},
+    "redLines": ["no cuts to Medicare or Social Security", "no government shutdown brinkmanship"],
+    "petIssues": ["infrastructure funding", "innovation hubs"],
+    "speakingStyle": "strategic, message-driven"
+  },
+  {
+    "id": "rep-budget-3",
+    "name": "Rand Paul",
+    "party": "Republican",
+    "ideology": {"econ": 0.9, "social": -0.1},
+    "redLines": ["no deficit expansion without offsets", "no new surveillance authorities"],
+    "petIssues": ["civil liberties", "balanced budget"],
+    "speakingStyle": "direct, libertarian"
+  },
+  {
+    "id": "rep-dem-1",
+    "name": "Elizabeth Warren",
+    "party": "Democrat",
+    "ideology": {"econ": -0.7, "social": 0.6},
+    "redLines": ["no deregulation that weakens consumer protections", "no tax breaks for top earners"],
+    "petIssues": ["consumer protection", "corporate accountability"],
+    "speakingStyle": "detailed, prosecutorial"
+  },
+  {
+    "id": "rep-dem-2",
+    "name": "Amy Klobuchar",
+    "party": "Democrat",
+    "ideology": {"econ": -0.1, "social": 0.2},
+    "redLines": ["no unfunded mandates", "no weakening of antitrust enforcement"],
+    "petIssues": ["antitrust enforcement", "rural broadband"],
+    "speakingStyle": "pragmatic, Midwest plainspoken"
+  },
+  {
+    "id": "rep-dem-3",
+    "name": "Pramila Jayapal",
+    "party": "Democrat",
+    "ideology": {"econ": -0.8, "social": 0.7},
+    "redLines": ["no cuts to healthcare coverage", "no weakening of worker protections"],
+    "petIssues": ["universal healthcare", "immigration reform"],
+    "speakingStyle": "values-driven, energetic"
+  },
+  {
+    "id": "rep-dem-4",
+    "name": "Ro Khanna",
+    "party": "Democrat",
+    "ideology": {"econ": -0.3, "social": 0.4},
+    "redLines": ["no limits on innovation funding", "no incentives for offshoring"],
+    "petIssues": ["tech competitiveness", "manufacturing revival"],
+    "speakingStyle": "policy-focused, tech-savvy"
+  },
+  {
+    "id": "rep-dem-5",
+    "name": "Tammy Baldwin",
+    "party": "Democrat",
+    "ideology": {"econ": -0.4, "social": 0.4},
+    "redLines": ["no outsourcing incentives", "no cuts to worker training"],
+    "petIssues": ["workforce development", "made-in-USA procurement"],
+    "speakingStyle": "steady, union-friendly"
+  },
+  {
+    "id": "rep-dem-6",
+    "name": "Raphael Warnock",
+    "party": "Democrat",
+    "ideology": {"econ": -0.4, "social": 0.5},
+    "redLines": ["no rollback of voting access", "no cuts to nutrition programs"],
+    "petIssues": ["voting access", "public health"],
+    "speakingStyle": "moral, pastoral"
+  },
+  {
+    "id": "rep-dem-7",
+    "name": "Sherrod Brown",
+    "party": "Democrat",
+    "ideology": {"econ": -0.5, "social": 0.3},
+    "redLines": ["no trade deals without labor standards", "no cuts to manufacturing programs"],
+    "petIssues": ["union jobs", "fair trade"],
+    "speakingStyle": "populist, worker-focused"
+  },
+  {
+    "id": "rep-dem-8",
+    "name": "Alexandria Ocasio-Cortez",
+    "party": "Democrat",
+    "ideology": {"econ": -0.9, "social": 0.8},
+    "redLines": ["no fossil expansion subsidies", "no weakening of climate targets"],
+    "petIssues": ["green jobs", "housing affordability"],
+    "speakingStyle": "bold, movement-oriented"
+  },
+  {
+    "id": "rep-dem-9",
+    "name": "Hakeem Jeffries",
+    "party": "Democrat",
+    "ideology": {"econ": -0.2, "social": 0.3},
+    "redLines": ["no default on debt", "no rollback of civil rights"],
+    "petIssues": ["public safety reform", "economic opportunity"],
+    "speakingStyle": "disciplined, leadership tone"
+  },
+  {
+    "id": "rep-dem-10",
+    "name": "Katie Porter",
+    "party": "Democrat",
+    "ideology": {"econ": -0.4, "social": 0.4},
+    "redLines": ["no loopholes for corporate consolidation", "no surprise medical billing"],
+    "petIssues": ["healthcare costs", "oversight accountability"],
+    "speakingStyle": "analytical, cross-examining"
+  },
+  {
+    "id": "rep-gop-1",
+    "name": "Kevin McCarthy",
+    "party": "Republican",
+    "ideology": {"econ": 0.6, "social": -0.2},
+    "redLines": ["no large tax hikes", "no broad new mandates"],
+    "petIssues": ["tax reform", "regulatory rollback"],
+    "speakingStyle": "strategic, tactical"
+  },
+  {
+    "id": "rep-gop-2",
+    "name": "Mike Johnson",
+    "party": "Republican",
+    "ideology": {"econ": 0.5, "social": -0.6},
+    "redLines": ["no expansive federal control of education", "no new federal agencies"],
+    "petIssues": ["constitutional limits", "public safety"],
+    "speakingStyle": "legalistic, assertive"
+  },
+  {
+    "id": "rep-gop-3",
+    "name": "John Cornyn",
+    "party": "Republican",
+    "ideology": {"econ": 0.5, "social": -0.3},
+    "redLines": ["no softening of border enforcement", "no unfunded mandates"],
+    "petIssues": ["border security", "judiciary policy"],
+    "speakingStyle": "measured, institutional"
+  },
+  {
+    "id": "rep-gop-4",
+    "name": "Ted Cruz",
+    "party": "Republican",
+    "ideology": {"econ": 0.7, "social": -0.5},
+    "redLines": ["no national energy bans", "no new entitlement growth"],
+    "petIssues": ["energy independence", "free speech"],
+    "speakingStyle": "combative, rhetorical"
+  },
+  {
+    "id": "rep-gop-5",
+    "name": "Marco Rubio",
+    "party": "Republican",
+    "ideology": {"econ": 0.4, "social": -0.4},
+    "redLines": ["no supply-chain dependence on adversaries", "no weakening of national security posture"],
+    "petIssues": ["national security", "workforce training"],
+    "speakingStyle": "policy-heavy, patriotic"
+  },
+  {
+    "id": "rep-gop-6",
+    "name": "Susan Collins",
+    "party": "Republican",
+    "ideology": {"econ": 0.2, "social": -0.1},
+    "redLines": ["no extreme partisan riders", "no cuts to rural healthcare"],
+    "petIssues": ["bipartisan compromise", "opioid response"],
+    "speakingStyle": "calm, bipartisan"
+  },
+  {
+    "id": "rep-gop-7",
+    "name": "Josh Hawley",
+    "party": "Republican",
+    "ideology": {"econ": 0.4, "social": -0.6},
+    "redLines": ["no deals that undercut domestic industry", "no weakening of family tax benefits"],
+    "petIssues": ["antitrust for big tech", "family policy"],
+    "speakingStyle": "populist, confrontational"
+  },
+  {
+    "id": "rep-gop-8",
+    "name": "Joni Ernst",
+    "party": "Republican",
+    "ideology": {"econ": 0.5, "social": -0.3},
+    "redLines": ["no unchecked spending", "no excessive farm compliance burdens"],
+    "petIssues": ["veterans services", "ag affordability"],
+    "speakingStyle": "plainspoken, disciplined"
+  },
+  {
+    "id": "rep-gop-9",
+    "name": "Dan Crenshaw",
+    "party": "Republican",
+    "ideology": {"econ": 0.6, "social": -0.3},
+    "redLines": ["no defense readiness cuts", "no open-ended mandates"],
+    "petIssues": ["defense modernization", "disaster resilience"],
+    "speakingStyle": "direct, mission-oriented"
+  },
+  {
+    "id": "rep-gop-10",
+    "name": "Elise Stefanik",
+    "party": "Republican",
+    "ideology": {"econ": 0.5, "social": -0.4},
+    "redLines": ["no unfunded mandates", "no cuts to local infrastructure"],
+    "petIssues": ["rural development", "education choice"],
+    "speakingStyle": "assertive, media-ready"
+  },
+  {
+    "id": "rep-ind-1",
+    "name": "Aidan Liu",
+    "party": "Republican",
+    "ideology": {"econ": 0.6, "social": -0.4},
+    "redLines": ["taxing the rich", "universal basic income"],
+    "petIssues": ["decreasing economic inequality", "access to healthcare"],
+    "speakingStyle": "passionate, data-driven"
+  },
+  {
+    "id": "rep-ind-2",
+    "name": "Angelina Shen",
+    "party": "Republican",
+    "ideology": {"econ": 1 , "social":  -1},
+    "redLines": ["pro-choice", "pro-chinese immigration"],
+    "petIssues": ["pro gun rights", "pro christianity doctrine in public schools"],
+    "speakingStyle": "lots of fancy words that dont necessarily need to be used" 
+  },
+  {
+    "id": "rep-ind-3",
+    "name": "Max Chen",
+    "party": "Democratic Socialist",
+    "ideology": {"econ": 1 , "social": 1 },
+    "redLines": ["economic inequality", "healthcare inaccesibility"],
+    "petIssues": ["capitalism", "Anti-Monopoly"],
+    "speakingStyle": "Aristotle, Shakespeare, thoughtful, neglectful, strong use of hollywood maxims and famous quotes" 
+  },
+  {
+    "id": "rep-ind-4",
+    "name": "Atharv Mungale",
+    "party": "authoritarian",
+    "ideology": {"econ": 1 , "social": 1 },
+    "redLines": ["Discrimination", "Economic inequality"],
+    "petIssues": ["Quality of life", "Accessiblity"],
+    "speakingStyle": "Greatest debater, clear, articulate, god tier negotiator"
+  }
+]
