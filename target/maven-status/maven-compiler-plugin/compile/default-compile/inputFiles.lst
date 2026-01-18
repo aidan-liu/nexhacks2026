@@ -13,6 +13,7 @@
 /Users/aidanliu/projects/nexhacks2026/src/main/java/govsim/core/GraphRunner.java
 /Users/aidanliu/projects/nexhacks2026/src/main/java/govsim/core/InteractionLog.java
 /Users/aidanliu/projects/nexhacks2026/src/main/java/govsim/core/Node.java
+/Users/aidanliu/projects/nexhacks2026/src/main/java/govsim/core/SimulationLogger.java
 /Users/aidanliu/projects/nexhacks2026/src/main/java/govsim/core/SimulationState.java
 /Users/aidanliu/projects/nexhacks2026/src/main/java/govsim/domain/Agency.java
 /Users/aidanliu/projects/nexhacks2026/src/main/java/govsim/domain/Bill.java
@@ -31,3 +32,8 @@
 /Users/aidanliu/projects/nexhacks2026/src/main/java/govsim/nodes/PrimaryFloorDebateNode.java
 /Users/aidanliu/projects/nexhacks2026/src/main/java/govsim/nodes/PublicForumNode.java
 /Users/aidanliu/projects/nexhacks2026/src/main/java/govsim/nodes/ThresholdDecisionNode.java
+/Users/aidanliu/projects/nexhacks2026/src/main/java/govsim/web/ChatStore.java
+/Users/aidanliu/projects/nexhacks2026/src/main/java/govsim/web/LogStore.java
+/Users/aidanliu/projects/nexhacks2026/src/main/java/govsim/web/LogTeeOutputStream.java
+/Users/aidanliu/projects/nexhacks2026/src/main/java/govsim/web/PollingServer.java
+/Users/aidanliu/projects/nexhacks2026/src/main/java/govsim/web/VoteBox.java

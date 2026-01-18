@@ -1,30 +1,32 @@
 [Committee] Lisa Murkowski speaks: support (vote YES)
-[Lobby] Lisa Murkowski -> DOE
+[Lobby] Lisa Murkowski -> Department of Energy
+[Lobby] Lisa Murkowski -> Environmental Protection Agency
 [Committee] Ed Markey speaks: support (vote YES)
-[Lobby] Ed Markey -> Clean Energy Alliance
-[Lobby] Ed Markey -> National Electric Grid modernization organizations
+[Lobby] Ed Markey -> Clean Energy Advocates
+[Lobby] Ed Markey -> Environmental Groups
 [Committee] Cory Booker speaks: support (vote YES)
-[Lobby] Cory Booker -> Energy industry leaders
-[Lobby] Cory Booker -> Infrastructure development organizations
+[Lobby] Cory Booker -> Renewable Energy Industry
+[Lobby] Cory Booker -> Infrastructure and Urban Development
 [Advocate] Cory Booker speaks: support
-[Lobby] Cory Booker -> Republicans in Congress
+[Lobby] Cory Booker -> House Energy and Commerce Committee
+[Lobby] Cory Booker -> Senate Environment and Public Works Committee
 [Floor] Hakeem Jeffries speaks: support (vote YES)
-[Lobby] Hakeem Jeffries -> Energy sector
-[Lobby] Hakeem Jeffries -> National Infrastructure
+[Lobby] Hakeem Jeffries -> Renewable Energy Industries
+[Lobby] Hakeem Jeffries -> Utility Companies
 [Floor] Cory Booker speaks: support (vote YES)
-[Lobby] Cory Booker -> Republicans in Congress
-[Floor] Katie Porter speaks: oppose (vote ABSTAIN)
-[Lobby] Katie Porter -> Utility industry representatives
-[Lobby] Katie Porter -> Health insurance companies
+[Lobby] Cory Booker -> House Energy and Commerce Committee
+[Lobby] Cory Booker -> Senate Environment and Public Works Committee
+[Floor] Katie Porter speaks: oppose (vote NO)
+[Lobby] Katie Porter -> House Energy and Commerce Committee
+[Lobby] Katie Porter -> Environmental Protection Agency
 [Floor] Dan Crenshaw speaks: support (vote YES)
-[Lobby] Dan Crenshaw -> Energy companies
-[Lobby] Dan Crenshaw -> Environmental organizations
+[Lobby] Dan Crenshaw -> Environmental Groups
+[Lobby] Dan Crenshaw -> State Energy Officials
 [Floor] Rand Paul speaks: support (vote YES)
-[Lobby] Rand Paul -> Department of Energy
-[Lobby] Rand Paul -> Senate Budget Committee
+[Lobby] Rand Paul -> Energy Department
+[Lobby] Rand Paul -> House Republicans
 [Floor] Raphael Warnock speaks: support (vote YES)
-[Lobby] Raphael Warnock -> American Energy Sector
-[Lobby] Raphael Warnock -> Environmental Groups
+[Lobby] Raphael Warnock -> House Energy and Commerce Committee
 [Floor] Elise Stefanik speaks: support (vote YES)
-[Lobby] Elise Stefanik -> Katie Porter
-[Lobby] Elise Stefanik -> Dan Crenshaw
+[Lobby] Elise Stefanik -> Senators Murkowski & Booker
+[Lobby] Elise Stefanik -> Rep. Jeffries

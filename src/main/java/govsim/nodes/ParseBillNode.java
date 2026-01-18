@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import govsim.core.Node;
+import govsim.core.SimulationLogger;
 import govsim.core.SimulationState;
 import govsim.llm.LLMClient;
 import govsim.llm.LLMRequestOptions;
@@ -30,7 +31,7 @@ public class ParseBillNode implements Node {
     if (state.bill == null) {
       throw new IllegalStateException("Missing bill in state");
     }
-    System.out.println("[ParseBill] Sending bill to LLM for analysis...");
+    SimulationLogger.log("[ParseBill] Sending bill to LLM for analysis...");
     String prompt = """
 You are a legislative analyst. Extract structured data and a short one-pager.
 
@@ -51,7 +52,7 @@ No extra keys. No markdown.
     try {
       root = mapper.readTree(json);
     } catch (JsonProcessingException e) {
-      System.out.println("[ParseBill] Invalid JSON from LLM. Retrying with higher limit...");
+      SimulationLogger.log("[ParseBill] Invalid JSON from LLM. Retrying with higher limit...");
       String retryPrompt = prompt + "\nReturn compact JSON only. No extra text.";
       json = llm.generateJson(retryPrompt, LLMRequestOptions.withNumPredict(NUM_PREDICT_PARSE_RETRY));
       root = mapper.readTree(json);
@@ -75,6 +76,6 @@ No extra keys. No markdown.
     state.bill.setEstimatedCost(estimatedCost);
     state.bill.setAttributes(attributes);
     state.billOnePager = onePager;
-    System.out.println("[ParseBill] Analysis complete.");
+    SimulationLogger.log("[ParseBill] Analysis complete.");
   }
 }

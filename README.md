@@ -20,6 +20,7 @@ Environment overrides (optional):
 - `SIM_OLLAMA_URL` (default `http://localhost:11434`)
 - `SIM_MODEL` (default `gemma2:2b`)
 - `SIM_NUM_PREDICT` (default `200`)
+- `SIM_SERVER_PORT` (default `8080`)
 - `SIM_BILL_PATH` (default `config/bill.txt`)
 - `SIM_AGENCIES_PATH` (default `config/agencies.json`)
 - `SIM_REPS_PATH` (default `config/representatives.json`)

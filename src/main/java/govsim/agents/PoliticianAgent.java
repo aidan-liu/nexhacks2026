@@ -4,6 +4,7 @@ import govsim.llm.LLMClient;
 import govsim.llm.LLMRequestOptions;
 import govsim.llm.PromptBuilder;
 import govsim.memory.MemoryStore;
+import govsim.core.SimulationLogger;
 
 public class PoliticianAgent extends Agent {
   private final PoliticianProfile profile;
@@ -41,7 +42,7 @@ public class PoliticianAgent extends Agent {
       memory.updateFromTurn(ctx, out);
       return out;
     } catch (Exception e) {
-      System.out.println("[LLM] Invalid JSON from " + name + ". Retrying...");
+      SimulationLogger.log("[LLM] Invalid JSON from " + name + ". Retrying...");
       String retryPrompt = prompt + "\nReturn compact JSON only. No extra text.";
       String retryJson = llm.generateJson(retryPrompt, LLMRequestOptions.withNumPredict(NUM_PREDICT_RETRY));
       AgentOutput out = AgentOutput.fromJson(retryJson);

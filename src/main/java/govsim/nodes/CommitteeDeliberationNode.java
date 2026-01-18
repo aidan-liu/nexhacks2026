@@ -4,6 +4,7 @@ import govsim.agents.AgentContext;
 import govsim.agents.AgentOutput;
 import govsim.config.AgentRegistry;
 import govsim.core.Node;
+import govsim.core.SimulationLogger;
 import govsim.core.SimulationState;
 import govsim.domain.Agency;
 
@@ -33,13 +34,13 @@ public class CommitteeDeliberationNode implements Node {
     Map<String, AgentOutput> outputs = new LinkedHashMap<>();
     for (String repId : agency.representativeIds()) {
       var rep = registry.repById(repId);
-      System.out.println("[Committee] " + agency.name() + " -> " + rep.name());
+      SimulationLogger.log("[Committee] " + agency.name() + " -> " + rep.name());
       AgentContext ctx = new AgentContext(state.bill, state.billOnePager, state.floorSummary,
           Map.of(), state.vars);
       AgentOutput out = rep.act(ctx);
       String reason = out.reasons.stream().findFirst().orElse("");
       if (!reason.isBlank()) {
-        System.out.println("[Committee] Reason: " + reason);
+        SimulationLogger.log("[Committee] Reason: " + reason);
       }
       outputs.put(repId, out);
       String logLine = "[Committee] " + rep.name() + " speaks: " + out.stance + " (vote " + out.voteIntent + ")";

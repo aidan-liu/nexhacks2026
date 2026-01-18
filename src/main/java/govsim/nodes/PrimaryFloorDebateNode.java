@@ -4,6 +4,7 @@ import govsim.agents.AgentContext;
 import govsim.agents.AgentOutput;
 import govsim.config.AgentRegistry;
 import govsim.core.Node;
+import govsim.core.SimulationLogger;
 import govsim.core.SimulationState;
 import govsim.domain.Agency;
 import govsim.domain.Vote;
@@ -38,13 +39,13 @@ public class PrimaryFloorDebateNode implements Node {
     if (advocateId != null) {
       var advocate = registry.repById(advocateId);
       if (advocate != null) {
-        System.out.println("[Advocate] " + advocate.name() + " is advocating for the bill...");
+        SimulationLogger.log("[Advocate] " + advocate.name() + " is advocating for the bill...");
         AgentContext advocateCtx = new AgentContext(state.bill, state.billOnePager, summary, Map.of(), state.vars);
         advocateOutput = advocate.advocate(advocateCtx);
-        System.out.println("[Advocate] " + advocate.name() + ": " + advocateOutput.speech);
+        SimulationLogger.log("[Advocate] " + advocate.name() + ": " + advocateOutput.speech);
         String reason = advocateOutput.reasons.stream().findFirst().orElse("");
         if (!reason.isBlank()) {
-          System.out.println("[Advocate] Reason: " + reason);
+          SimulationLogger.log("[Advocate] Reason: " + reason);
         }
         state.interactionLog.add("[Advocate] " + advocate.name() + " speaks: " + advocateOutput.stance);
         logLobbyTargets(state, advocate.name(), advocateOutput);
@@ -56,7 +57,7 @@ public class PrimaryFloorDebateNode implements Node {
         .sorted(Comparator.comparing(Agency::id))
         .toList();
     List<Agency> selectedAgencies = pickAgencies(agencies, AGENCIES_TO_VOTE, rng);
-    System.out.println("[Floor] Agencies voting: " + selectedAgencies.stream().map(Agency::name).toList());
+    SimulationLogger.log("[Floor] Agencies voting: " + selectedAgencies.stream().map(Agency::name).toList());
 
     Map<String, AgentOutput> outputs = new LinkedHashMap<>();
     for (Agency agency : selectedAgencies) {
@@ -64,7 +65,7 @@ public class PrimaryFloorDebateNode implements Node {
       if (repId == null) continue;
       var rep = registry.repById(repId);
       if (rep == null) continue;
-      System.out.println("[Floor] " + agency.name() + " -> " + rep.name() + " is taking the floor...");
+      SimulationLogger.log("[Floor] " + agency.name() + " -> " + rep.name() + " is taking the floor...");
       AgentContext ctx = new AgentContext(state.bill, state.billOnePager, summary, Map.of(), state.vars);
       AgentOutput out;
       if (repId.equals(advocateId) && advocateOutput != null) {
@@ -74,7 +75,7 @@ public class PrimaryFloorDebateNode implements Node {
       }
       String reason = out.reasons.stream().findFirst().orElse("");
       if (!reason.isBlank()) {
-        System.out.println("[Floor] Reason: " + reason);
+        SimulationLogger.log("[Floor] Reason: " + reason);
       }
       outputs.put(repId, out);
       summary = appendSummary(summary, rep.name(), out);

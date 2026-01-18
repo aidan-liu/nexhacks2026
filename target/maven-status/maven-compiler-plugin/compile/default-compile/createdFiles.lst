@@ -1,4 +1,5 @@
 govsim/agents/AgentOutput.class
+govsim/llm/LLMRequestOptions.class
 govsim/domain/Bill.class
 govsim/nodes/CommitteeDeliberationNode.class
 govsim/core/SimulationState.class
@@ -9,13 +10,17 @@ govsim/nodes/ThresholdDecisionNode.class
 govsim/domain/Agency.class
 govsim/core/GraphRunner.class
 govsim/agents/JudgeAgent.class
+govsim/web/LogStore$LogSnapshot.class
+govsim/web/VoteBox.class
 govsim/agents/Agent.class
 govsim/nodes/ParseBillNode.class
+govsim/web/VoteBox$VoteSnapshot.class
 govsim/config/AgentRegistry.class
 govsim/domain/Vote.class
 govsim/llm/LLMClient.class
 govsim/memory/SimpleMemoryStore.class
 govsim/llm/PromptBuilder.class
+govsim/web/LogTeeOutputStream.class
 govsim/agents/JudgeDecision.class
 govsim/llm/OllamaClient.class
 govsim/config/AgentFactory.class
@@ -29,6 +34,9 @@ govsim/memory/MemoryStore.class
 govsim/agents/PoliticianProfile.class
 govsim/agents/PoliticianAgent.class
 govsim/core/InteractionLog.class
+govsim/web/LogStore.class
+govsim/core/SimulationLogger.class
+govsim/web/PollingServer.class
 govsim/core/Node.class
 govsim/nodes/PrimaryFloorDebateNode.class
 govsim/nodes/FinalizeNode.class

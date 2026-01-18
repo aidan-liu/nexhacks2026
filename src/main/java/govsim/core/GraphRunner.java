@@ -9,9 +9,9 @@ public class GraphRunner {
 
   public void run(SimulationState state) throws Exception {
     for (Node n : nodes) {
-      System.out.println("==> Running: " + n.name());
+      SimulationLogger.log("==> Running: " + n.name());
       n.run(state);
-      System.out.println("==> Done: " + n.name());
+      SimulationLogger.log("==> Done: " + n.name());
     }
   }
 }
