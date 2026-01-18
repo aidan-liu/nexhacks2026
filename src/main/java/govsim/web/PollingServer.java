@@ -419,10 +419,7 @@ public class PollingServer {
     }
     #scene-container {
       position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      height: 50%;
+      inset: 0;
       z-index: 1;
     }
     #scene-container canvas { display: block; width: 100%; height: 100%; }
@@ -455,6 +452,44 @@ public class PollingServer {
       box-shadow: 0 10px 22px rgba(12,20,36,0.14);
       white-space: pre-wrap;
       max-width: 260px;
+    }
+    #ambientBubbles {
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+      pointer-events: none;
+    }
+    #stageBanner {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #ffffff;
+      border: 2px solid #d6dee9;
+      border-radius: 16px;
+      padding: 10px 16px;
+      font-family: "Press Start 2P", "Space Mono", monospace;
+      font-size: 20px;
+      color: #101622;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      z-index: 7;
+      box-shadow: 0 12px 28px rgba(12,20,36,0.16);
+      pointer-events: none;
+    }
+    .rep-bubble {
+      position: absolute;
+      transform: translate(-50%, -120%);
+      background: #ffffff;
+      border: 1px solid #d6dee9;
+      border-radius: 14px;
+      padding: 6px 8px;
+      font-size: 9px;
+      color: #1f2a3a;
+      max-width: 200px;
+      line-height: 1.3;
+      box-shadow: 0 8px 18px rgba(12,20,36,0.12);
+      white-space: pre-wrap;
     }
 
     #cutscene {
@@ -634,11 +669,13 @@ public class PollingServer {
         </div>
       </div>
       <div id="repTooltip" class="hidden"></div>
+      <div id="stageBanner"></div>
+      <div id="ambientBubbles"></div>
       <div id="cutscene">
         <div id="cutsceneShade"></div>
       <div id="cutsceneFrame">
         <div id="liveBadge"><span id="liveDot"></span>LIVE</div>
-        <video id="cutsceneVideo" playsinline></video>
+          <video id="cutsceneVideo" muted playsinline preload="auto"></video>
       </div>
       </div>
     </section>
@@ -714,6 +751,8 @@ public class PollingServer {
     const revisedText = document.getElementById('revisedText');
     const sceneContainer = document.getElementById('scene-container');
     const repTooltip = document.getElementById('repTooltip');
+    const ambientBubbles = document.getElementById('ambientBubbles');
+    const stageBanner = document.getElementById('stageBanner');
     const scene = document.getElementById('scene');
     const cutscene = document.getElementById('cutscene');
     const cutsceneVideo = document.getElementById('cutsceneVideo');
@@ -729,6 +768,19 @@ public class PollingServer {
     let repsLoaded = false;
     let lastStage = '';
     let lastStageRunning = false;
+    const ambientLines = [
+      'We need a clean funding baseline.',
+      'Constituents want accountability.',
+      'This reads like a mandate.',
+      'I can back this with amendments.',
+      'We should cap the cost exposure.',
+      'The oversight language is weak.',
+      'We need regional equity here.',
+      'This is a nonstarter as written.',
+      'Let’s tighten the enforcement.',
+      'Transparency should be the floor.'
+    ];
+    const ambientBubbleState = [];
     const STAGE_NAMES = [
       'Pull Bill',
       'Parse Bill',
@@ -782,6 +834,9 @@ public class PollingServer {
         const open = !!data.open;
         statusBadge.textContent = open ? 'Voting Open' : 'Voting Closed';
         updateStageFlow(data.currentStage || 'Idle', data.stageRunning);
+        if (data.currentStage && data.currentStage !== lastStage) {
+          showStageBanner(data.currentStage);
+        }
         if (lastStageRunning && !data.stageRunning && data.currentStage) {
           const nodeName = stageDisplayToNode(data.currentStage);
           if (nodeName) {
@@ -936,7 +991,7 @@ public class PollingServer {
 
           const box = new THREE.Box3().setFromObject(model);
           const size = box.getSize(new THREE.Vector3());
-          const targetHeight = 6.3;
+          const targetHeight = 2.1;
           const scale = size.y > 0 ? targetHeight / size.y : 1;
           model.scale.setScalar(scale);
 
@@ -959,6 +1014,15 @@ public class PollingServer {
       }
 
       _buildIndicators() {
+        const shadow = new THREE.Mesh(
+          new THREE.CircleGeometry(0.6, 24),
+          new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.35 })
+        );
+        shadow.rotation.x = -Math.PI / 2;
+        shadow.position.y = -0.02;
+        shadow.renderOrder = 4;
+        this.group.add(shadow);
+
         const ring = new THREE.Mesh(
           new THREE.RingGeometry(0.35, 0.45, 32),
           new THREE.MeshBasicMaterial({ color: 0xd1d5db, side: THREE.DoubleSide, transparent: true, opacity: 0.8 })
@@ -979,11 +1043,11 @@ public class PollingServer {
 
       _buildFallback() {
         const mesh = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.7, 0.7, 3.6, 12),
+          new THREE.CylinderGeometry(0.23, 0.23, 1.2, 12),
           new THREE.MeshStandardMaterial({ color: 0xb8b8b8 })
         );
         mesh.castShadow = true;
-        mesh.position.y = 1.8;
+        mesh.position.y = 0.6;
         mesh.userData.repId = this.data.id;
         this.group.add(mesh);
       }
@@ -1029,7 +1093,7 @@ public class PollingServer {
         const pos = this.group.position;
         const dx = this.targetPosition.x - pos.x;
         const dz = this.targetPosition.z - pos.z;
-        const moveSpeed = 2.4 * delta;
+        const moveSpeed = 2.0 * delta;
         if (Math.abs(dx) > 0.01 || Math.abs(dz) > 0.01) {
           pos.x += dx * moveSpeed;
           pos.z += dz * moveSpeed;
@@ -1069,6 +1133,8 @@ public class PollingServer {
         this.frustumSize = 24;
         this.rowSpacing = 4.2;
         this.seatSpacing = 4.2;
+        this.groundY = -7;
+        this.zClamp = 0;
         this.ambientEnabled = true;
         this._ambientTime = 0;
       }
@@ -1139,7 +1205,7 @@ public class PollingServer {
       }
 
       _setupFloor() {
-        const size = 36;
+        const size = 12;
         const geometry = new THREE.PlaneGeometry(size, size);
         const material = new THREE.MeshStandardMaterial({
           color: 0xd8dde6,
@@ -1150,19 +1216,19 @@ public class PollingServer {
         });
         const floor = new THREE.Mesh(geometry, material);
         floor.rotation.x = -Math.PI / 2;
-        floor.position.y = 0;
+        floor.position.y = this.groundY;
         floor.receiveShadow = true;
         this.scene.add(floor);
 
-        const grid = new THREE.GridHelper(size, 24, 0x9aa6b2, 0xc7d0db);
-        grid.position.y = 0.02;
+        const grid = new THREE.GridHelper(size, 8, 0x9aa6b2, 0xc7d0db);
+        grid.position.y = this.groundY + 0.02;
         grid.material.transparent = true;
         grid.material.opacity = 0.45;
         grid.material.depthWrite = false;
         grid.material.depthTest = false;
         grid.renderOrder = 5;
-        grid.scale.x = 1.4;
-        grid.scale.z = 0.9;
+        grid.scale.x = 1.0;
+        grid.scale.z = 1.0;
         this.scene.add(grid);
       }
 
@@ -1189,10 +1255,11 @@ public class PollingServer {
       async _arrangeRandom(reps, glbUrls) {
         const total = reps.length;
         if (!total) return;
-        const areaX = Math.max(8, this.seatSpacing * 4.5);
-        const areaZ = Math.max(8, this.rowSpacing * 3.5);
+        const areaX = Math.max(8, this.seatSpacing * 4.0);
+        const areaZ = Math.max(8, this.rowSpacing * 3.0);
         const positions = [];
         const minDist = Math.min(this.seatSpacing, this.rowSpacing) * 0.6;
+        this.zClamp = areaZ * 0.45;
         for (let i = 0; i < total; i++) {
           let x = 0;
           let z = 0;
@@ -1200,6 +1267,8 @@ public class PollingServer {
           do {
             x = (Math.random() - 0.5) * areaX;
             z = (Math.random() - 0.5) * areaZ;
+            if (z < -this.zClamp) z = -this.zClamp;
+            if (z > this.zClamp) z = this.zClamp;
             attempts++;
           } while (attempts < 40 && positions.some(p => Math.hypot(p.x - x, p.z - z) < minDist));
           positions.push({ x, z });
@@ -1211,7 +1280,7 @@ public class PollingServer {
           const url = glbUrls.length ? glbUrls[i % glbUrls.length] : '';
           const actor = new RepActor(repData, url, this.loader);
           await actor.load();
-          actor.setPosition(pos.x, 0, pos.z);
+          actor.setPosition(pos.x, this.groundY, pos.z);
           actor.group.userData.repId = repData.id;
           actor.group.traverse((child) => {
             if (child.isMesh) child.userData.repId = repData.id;
@@ -1319,14 +1388,19 @@ public class PollingServer {
           if (actor.isSpeaking || actor.data.id === this.currentSpeakerId) continue;
           if (this._ambientTime < actor._ambient.nextWanderAt) continue;
 
-          const r = 1.6;
+          const r = 0.9;
           const angle = Math.random() * Math.PI * 2;
           const radius = Math.random() * r;
           const x = actor.basePosition.x + Math.cos(angle) * radius;
-          const z = actor.basePosition.z + Math.sin(angle) * radius;
+          let z = actor.basePosition.z + Math.sin(angle) * radius;
+          const zClamp = typeof this.zClamp === 'number' ? this.zClamp : 0;
+          if (zClamp > 0) {
+            if (z > zClamp) z = zClamp;
+            if (z < -zClamp) z = -zClamp;
+          }
           actor.moveTo(x, actor.basePosition.y, z);
           actor.faceTowards(x, z);
-          actor._ambient.nextWanderAt = this._ambientTime + 1.2 + Math.random() * 3.0;
+          actor._ambient.nextWanderAt = this._ambientTime + 1.8 + Math.random() * 3.2;
         }
       }
     }
@@ -1337,6 +1411,7 @@ public class PollingServer {
       await scene3d.init();
       scene3d.onRepHover = (rep) => showTooltip(rep);
       scene3d.onRepLeave = () => hideTooltip();
+      scene3d.onTick = () => syncAmbientBubbles();
     }
 
     async function fetchReps() {
@@ -1378,6 +1453,36 @@ public class PollingServer {
     function hideTooltip() {
       if (!repTooltip) return;
       repTooltip.classList.add('hidden');
+    }
+
+    function spawnAmbientBubble() {
+      if (!scene3d || !ambientBubbles) return;
+      const reps = Array.from(scene3d.reps.keys());
+      if (!reps.length) return;
+      const repId = reps[Math.floor(Math.random() * reps.length)];
+      const text = ambientLines[Math.floor(Math.random() * ambientLines.length)];
+      const el = document.createElement('div');
+      el.className = 'rep-bubble';
+      el.textContent = text;
+      ambientBubbles.appendChild(el);
+      ambientBubbleState.push({ repId, el, expiresAt: performance.now() + 2800 });
+    }
+
+    function syncAmbientBubbles() {
+      if (!scene3d) return;
+      const now = performance.now();
+      for (let i = ambientBubbleState.length - 1; i >= 0; i--) {
+        const bubble = ambientBubbleState[i];
+        if (now > bubble.expiresAt) {
+          bubble.el.remove();
+          ambientBubbleState.splice(i, 1);
+          continue;
+        }
+        const pos = scene3d.getRepScreenPosition(bubble.repId);
+        if (!pos) continue;
+        bubble.el.style.left = `${pos.x}px`;
+        bubble.el.style.top = `${pos.y}px`;
+      }
     }
 
     function updateSpeaker(data) {
@@ -1473,6 +1578,11 @@ public class PollingServer {
       return base.replace(/\\s+/g, '');
     }
 
+    function showStageBanner(stageText) {
+      if (!stageBanner || !stageText) return;
+      stageBanner.textContent = stageText;
+    }
+
     function updateStageFlow(stageText, isRunning) {
       const normalized = normalizeStage(stageText);
       stageFlow.querySelectorAll('.stage-node').forEach(node => {
@@ -1553,6 +1663,7 @@ public class PollingServer {
       cutscene.classList.add('active');
       cutsceneVideo.pause();
       cutsceneVideo.currentTime = 0;
+      cutsceneVideo.muted = true;
       cutsceneVideo.src = src;
       let finished = false;
       let fallback = null;
@@ -1598,6 +1709,11 @@ public class PollingServer {
     setInterval(fetchStatus, 1000);
     setInterval(fetchChat, 1000);
     setInterval(fetchBill, 2000);
+    setInterval(() => {
+      if (scene3d && Math.random() < 0.55) {
+        spawnAmbientBubble();
+      }
+    }, 2200);
     // Fetch once; avoid resetting positions during the run.
     fetchLogs();
     fetchStatus();

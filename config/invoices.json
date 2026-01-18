@@ -1,0 +1,26 @@
+[
+  {
+    "id": "inv-001",
+    "vendor": "Volta Grid Services",
+    "description": "Regional grid modernization feasibility study and site survey.",
+    "amountWei": "120000000000000000",
+    "recipientAddress": "0x0000000000000000000000000000000000000000",
+    "proofUrl": "local://invoices/inv-001"
+  },
+  {
+    "id": "inv-002",
+    "vendor": "Civic Data Analytics",
+    "description": "Public transparency dashboard build-out and audit logs.",
+    "amountWei": "80000000000000000",
+    "recipientAddress": "0x0000000000000000000000000000000000000000",
+    "proofUrl": "local://invoices/inv-002"
+  },
+  {
+    "id": "inv-003",
+    "vendor": "Rural Fiber Works",
+    "description": "Backbone fiber inspection and resilience upgrades for rural corridors.",
+    "amountWei": "150000000000000000",
+    "recipientAddress": "0x0000000000000000000000000000000000000000",
+    "proofUrl": "local://invoices/inv-003"
+  }
+]

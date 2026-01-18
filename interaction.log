@@ -1,21 +1,24 @@
-[Committee] Mike Johnson speaks: support (vote YES)
-[Lobby] Mike Johnson -> Senator Bennet (Colorado) - I strongly urge Senator Bennet to support this bill and work with me in advancing bipartisan solutions for American infrastructure. A collaborative effort will ensure that Colorado's water supply needs are met, bolstering our national energy security.
-[Committee] Ted Cruz speaks: oppose (vote NO)
-[Lobby] Ted Cruz -> Mike Johnson (Constitutional and Civil Liberty Agency)
-[Committee] Angelina Shen speaks: support (vote YES)
-[Lobby] Angelina Shen -> Mike Johnson
-[Lobby] Angelina Shen -> Ted Cruz
-[Advocate] Angelina Shen speaks: support
-[Lobby] Angelina Shen -> Mike Johnson
-[Floor] Aidan Liu speaks: undecided (vote ABSTAIN)
-[Floor] John Cornyn speaks: undecided (vote ABSTAIN)
-[Floor] Mike Johnson speaks: undecided (vote ABSTAIN)
-[Floor] Mitch McConnell speaks: support (vote YES)
-[Lobby] Mitch McConnell -> Mike Johnson
-[Floor] Atharv Mungale speaks: support (vote YES)
-[Lobby] Atharv Mungale -> Mike Johnson
-[Lobby] Atharv Mungale -> Ted Cruz
+[Committee] John Cornyn speaks: support (vote YES)
+[Lobby] John Cornyn -> Members of Congress concerned about climate change and its impact on grid reliability
+[Lobby] John Cornyn -> Advocates for improved disaster preparedness measures across the nation
+[Committee] Hakeem Jeffries speaks: undecided (vote ABSTAIN)
+[Committee] Marco Rubio speaks: support (vote YES)
+[Lobby] Marco Rubio -> John Cornyn
+[Advocate] Marco Rubio speaks: support
+[Lobby] Marco Rubio -> John Cornyn
+[Lobby] Marco Rubio -> Hakeem Jeffries
+[Floor] Rand Paul speaks: support (vote YES)
+[Lobby] Rand Paul -> John Cornyn
+[Lobby] Rand Paul -> Marco Rubio
 [Floor] Amy Klobuchar speaks: undecided (vote ABSTAIN)
-[Floor] Cory Booker speaks: support (vote YES)
-[Lobby] Cory Booker -> Mike Johnson
-[Lobby] Cory Booker -> Mitch McConnell
+[Floor] Katie Porter speaks: support (vote YES)
+[Lobby] Katie Porter -> John Cornyn
+[Lobby] Katie Porter -> Rand Paul
+[Floor] Ted Cruz speaks: support (vote YES)
+[Lobby] Ted Cruz -> Marco Rubio
+[Floor] Lisa Murkowski speaks: support (vote YES)
+[Lobby] Lisa Murkowski -> Senator Rubio
+[Floor] Aidan Liu speaks: undecided (vote ABSTAIN)
+[Floor] Max Chen speaks: support (vote YES)
+[Lobby] Max Chen -> Marco Rubio
+[Lobby] Max Chen -> Rand Paul

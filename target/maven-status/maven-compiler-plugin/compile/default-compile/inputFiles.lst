@@ -10,6 +10,7 @@
 /Users/aidanliu/projects/nexhacks2026/src/main/java/govsim/config/AgentRegistry.java
 /Users/aidanliu/projects/nexhacks2026/src/main/java/govsim/config/BillLoader.java
 /Users/aidanliu/projects/nexhacks2026/src/main/java/govsim/config/FactsLoader.java
+/Users/aidanliu/projects/nexhacks2026/src/main/java/govsim/config/InvoiceLoader.java
 /Users/aidanliu/projects/nexhacks2026/src/main/java/govsim/config/SimulationConfig.java
 /Users/aidanliu/projects/nexhacks2026/src/main/java/govsim/core/GraphRunner.java
 /Users/aidanliu/projects/nexhacks2026/src/main/java/govsim/core/InteractionLog.java
@@ -28,6 +29,7 @@
 /Users/aidanliu/projects/nexhacks2026/src/main/java/govsim/memory/SimpleMemoryStore.java
 /Users/aidanliu/projects/nexhacks2026/src/main/java/govsim/nodes/CommitteeDeliberationNode.java
 /Users/aidanliu/projects/nexhacks2026/src/main/java/govsim/nodes/FinalizeNode.java
+/Users/aidanliu/projects/nexhacks2026/src/main/java/govsim/nodes/InvoiceApprovalNode.java
 /Users/aidanliu/projects/nexhacks2026/src/main/java/govsim/nodes/JudgeAssignAgencyNode.java
 /Users/aidanliu/projects/nexhacks2026/src/main/java/govsim/nodes/ParseBillNode.java
 /Users/aidanliu/projects/nexhacks2026/src/main/java/govsim/nodes/PrimaryFloorDebateNode.java

@@ -16,9 +16,10 @@ public class SimulationConfig {
   private final String billPath;
   private final String agenciesPath;
   private final String repsPath;
+  private final String invoicesPath;
 
   public SimulationConfig(String ollamaUrl, String model, int numPredict, int serverPort, int maxRevisions, String factsPath,
-                          String billPath, String agenciesPath, String repsPath) {
+                          String billPath, String agenciesPath, String repsPath, String invoicesPath) {
     this.ollamaUrl = ollamaUrl;
     this.model = model;
     this.numPredict = numPredict;
@@ -28,6 +29,7 @@ public class SimulationConfig {
     this.billPath = billPath;
     this.agenciesPath = agenciesPath;
     this.repsPath = repsPath;
+    this.invoicesPath = invoicesPath;
   }
 
   public String ollamaUrl() { return ollamaUrl; }
@@ -39,6 +41,7 @@ public class SimulationConfig {
   public String billPath() { return billPath; }
   public String agenciesPath() { return agenciesPath; }
   public String repsPath() { return repsPath; }
+  public String invoicesPath() { return invoicesPath; }
 
   public static SimulationConfig load() throws IOException {
     Properties props = new Properties();
@@ -58,9 +61,10 @@ public class SimulationConfig {
     String billPath = getValue(props, "bill.path", "SIM_BILL_PATH", "config/bill.txt");
     String agenciesPath = getValue(props, "agencies.path", "SIM_AGENCIES_PATH", "config/agencies.json");
     String repsPath = getValue(props, "reps.path", "SIM_REPS_PATH", "config/representatives.json");
+    String invoicesPath = getValue(props, "invoices.path", "SIM_INVOICES_PATH", "config/invoices.json");
 
     return new SimulationConfig(ollamaUrl, model, numPredict, serverPort, maxRevisions, factsPath,
-        billPath, agenciesPath, repsPath);
+        billPath, agenciesPath, repsPath, invoicesPath);
   }
 
   private static String getValue(Properties props, String key, String envKey, String defaultValue) {

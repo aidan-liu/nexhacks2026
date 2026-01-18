@@ -12,6 +12,7 @@ import govsim.llm.LLMClient;
 import govsim.llm.OllamaClient;
 import govsim.nodes.CommitteeDeliberationNode;
 import govsim.nodes.FinalizeNode;
+import govsim.nodes.InvoiceApprovalNode;
 import govsim.nodes.JudgeAssignAgencyNode;
 import govsim.nodes.ParseBillNode;
 import govsim.nodes.PrimaryFloorDebateNode;
@@ -66,6 +67,7 @@ public class Main {
     state.vars.put("repsStore", repsStore);
     state.vars.put("statusStore", statusStore);
     state.vars.put("billPath", config.billPath());
+    state.vars.put("invoicesPath", config.invoicesPath());
     billStore.setOriginalText(state.bill.rawText());
     FactsLoader factsLoader = new FactsLoader();
     state.vars.put("factsPack", FactsLoader.toPromptBlock(factsLoader.load(config.factsPath())));
@@ -78,6 +80,7 @@ public class Main {
         new PrimaryFloorDebateNode(registry),
         new PublicForumNode(),
         new ThresholdDecisionNode(),
+        new InvoiceApprovalNode(llm, config.invoicesPath()),
         new ReviseFailedBillNode(registry, llm),
         new FinalizeNode()
     ), config.maxRevisions());
