@@ -102,9 +102,6 @@ public class CommitteeDeliberationNode implements Node {
     Object storeObj = state.vars.get("statusStore");
     if (storeObj instanceof govsim.web.StatusStore store) {
       String text = speech == null ? "" : speech.trim();
-      if (text.length() > 180) {
-        text = text.substring(0, 180) + "...";
-      }
       store.setSpeaker(id, name, text);
     }
   }

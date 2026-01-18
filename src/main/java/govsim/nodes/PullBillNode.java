@@ -23,6 +23,7 @@ public class PullBillNode implements Node {
   private static final int MIN_TEXT_LEN = 500;
   private static final String DEFAULT_BASE = "https://api.congress.gov/v3";
   private static final String BILL_ENDPOINT = "/bill/119";
+  private static final String OFFSET_FILE = ".govsim_bill_offset";
   private final HttpClient http = HttpClient.newBuilder()
       .connectTimeout(Duration.ofSeconds(10))
       .build();
@@ -45,7 +46,14 @@ public class PullBillNode implements Node {
     }
 
     try {
-      Bill bill = fetchBill(baseUrl, apiKey);
+      int offset = readOffset();
+      Bill bill = fetchBill(baseUrl, apiKey, offset);
+      if (bill == null && offset > 0) {
+        SimulationLogger.log("[PullBill] Offset page empty. Resetting offset to 0.");
+        offset = 0;
+        bill = fetchBill(baseUrl, apiKey, offset);
+      }
+      writeOffset(offset + MAX_BILLS);
       if (bill == null) {
         SimulationLogger.log("[PullBill] No bill with usable text found. Using existing bill.");
         return;
@@ -63,8 +71,10 @@ public class PullBillNode implements Node {
     }
   }
 
-  private Bill fetchBill(String baseUrl, String apiKey) throws Exception {
-    String listUrl = baseUrl + BILL_ENDPOINT + "?limit=" + MAX_BILLS + "&offset=0&format=json&api_key=" + apiKey;
+  private Bill fetchBill(String baseUrl, String apiKey, int offset) throws Exception {
+    int safeOffset = Math.max(0, offset);
+    String listUrl = baseUrl + BILL_ENDPOINT + "?limit=" + MAX_BILLS + "&offset=" + safeOffset +
+        "&format=json&api_key=" + apiKey;
     JsonNode listRoot = getJson(listUrl);
     JsonNode bills = listRoot.path("bills");
     if (!bills.isArray()) return null;
@@ -160,6 +170,25 @@ public class PullBillNode implements Node {
     String val = readEnvFile(Path.of(".env"), key);
     if (val != null) return val;
     return readEnvFile(Path.of(".env.local"), key);
+  }
+
+  private int readOffset() {
+    Path path = Path.of(OFFSET_FILE);
+    if (!Files.exists(path)) return 0;
+    try {
+      String text = Files.readString(path, StandardCharsets.UTF_8).trim();
+      if (text.isBlank()) return 0;
+      return Math.max(0, Integer.parseInt(text));
+    } catch (Exception e) {
+      return 0;
+    }
+  }
+
+  private void writeOffset(int offset) {
+    try {
+      Files.writeString(Path.of(OFFSET_FILE), String.valueOf(Math.max(0, offset)), StandardCharsets.UTF_8);
+    } catch (IOException ignored) {
+    }
   }
 
   private String readEnvFile(Path path, String key) {

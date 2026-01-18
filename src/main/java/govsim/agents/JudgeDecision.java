@@ -12,6 +12,7 @@ public class JudgeDecision {
   public String selectedAgencyId;
   public String rationale;
   public Double confidence;
+  public java.util.Map<String, Double> scores;
 
   public static JudgeDecision fromJson(String json) throws Exception {
     ObjectMapper mapper = new ObjectMapper();
@@ -27,6 +28,7 @@ public class JudgeDecision {
     out.selectedAgencyId = firstText(obj, "selectedAgencyId", "agencyId", "selectedAgency");
     out.rationale = firstText(obj, "rationale", "reason");
     out.confidence = firstNumber(obj, "confidence", "score");
+    out.scores = readScores(obj.get("scores"));
 
     if (out.selectedAgencyId == null || out.selectedAgencyId.isBlank()) {
       throw new IllegalArgumentException("Missing required fields: selectedAgencyId");
@@ -67,5 +69,23 @@ public class JudgeDecision {
       }
     }
     return null;
+  }
+
+  private static java.util.Map<String, Double> readScores(JsonNode node) {
+    if (node == null || node.isNull() || !node.isObject()) return java.util.Map.of();
+    java.util.Map<String, Double> out = new java.util.HashMap<>();
+    node.fields().forEachRemaining(entry -> {
+      JsonNode val = entry.getValue();
+      if (val == null || val.isNull()) return;
+      if (val.isNumber()) {
+        out.put(entry.getKey(), val.asDouble());
+      } else if (val.isTextual()) {
+        try {
+          out.put(entry.getKey(), Double.parseDouble(val.asText().trim()));
+        } catch (NumberFormatException ignored) {
+        }
+      }
+    });
+    return out;
   }
 }

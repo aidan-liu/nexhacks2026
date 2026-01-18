@@ -261,6 +261,11 @@ public class PollingServer {
     if (name.endsWith(".png")) return "image/png";
     if (name.endsWith(".jpg") || name.endsWith(".jpeg")) return "image/jpeg";
     if (name.endsWith(".webp")) return "image/webp";
+    if (name.endsWith(".glb")) return "model/gltf-binary";
+    if (name.endsWith(".gltf")) return "model/gltf+json";
+    if (name.endsWith(".mov")) return "video/quicktime";
+    if (name.endsWith(".mp4")) return "video/mp4";
+    if (name.endsWith(".webm")) return "video/webm";
     return "application/octet-stream";
   }
 
@@ -330,7 +335,14 @@ public class PollingServer {
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Quorum</title>
-  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap');
     :root {
@@ -341,16 +353,45 @@ public class PollingServer {
     * { box-sizing: border-box; }
     html, body { height: 100%; }
     body { margin:0; font-family: "Space Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; background: var(--bg); color: var(--text); overflow: hidden; }
-    header { padding: 12px 20px; border-bottom: 1px solid #d6dee9; display:flex; align-items:center; justify-content:center; gap: 14px; background: #ffffff; }
+    header { padding: 10px 20px 12px; border-bottom: 1px solid #d6dee9; display:flex; flex-direction: column; align-items:center; gap: 8px; background: #ffffff; }
+    .header-top { display:flex; align-items:center; justify-content:center; gap: 18px; width: 100%; }
     .brand { display:flex; align-items:center; gap: 12px; }
     .brand img { height: 32px; width: auto; }
     .title { font-family: "Press Start 2P", "Space Mono", monospace; font-size: 14px; letter-spacing: 1px; text-transform: uppercase; }
     .row { display:flex; align-items:center; gap: 10px; flex-wrap: wrap; }
     .badge { display:inline-block; padding: 4px 10px; border-radius: 999px; background: #eef3f8; color: var(--muted); font-size: 11px; border: 1px solid #d6dee9; }
-    #stageTitle.stage-running { border-color: #2ac769; color: #146b3a; box-shadow: 0 0 0 2px rgba(42,199,105,0.25); animation: stage-pulse 1s ease-in-out infinite; }
     @keyframes stage-pulse {
       0%, 100% { box-shadow: 0 0 0 2px rgba(42,199,105,0.25); }
       50% { box-shadow: 0 0 0 4px rgba(42,199,105,0.45); }
+    }
+    .stage-flow {
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap: 6px;
+      flex-wrap: wrap;
+      font-size: 10px;
+      color: var(--muted);
+    }
+    .stage-node {
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid #d6dee9;
+      background: #f4f7fb;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    .stage-node.active {
+      border-color: #2ac769;
+      color: #146b3a;
+      background: #e7f7ee;
+    }
+    .stage-node.running {
+      animation: stage-pulse 1s ease-in-out infinite;
+    }
+    .stage-arrow {
+      color: #98a2b3;
+      font-size: 12px;
     }
     button { background: var(--accent); color: #0b1018; border: 0; padding: 9px 12px; border-radius: 8px; font-weight: 700; cursor: pointer; }
     button.secondary { background: #eef3f8; color: var(--text); border: 1px solid #d6dee9; }
@@ -366,84 +407,135 @@ public class PollingServer {
     .bill-section { margin-top: 6px; }
     details summary { cursor: pointer; color: var(--muted); font-size: 12px; margin-top: 6px; }
 
+    .hidden { display: none; }
+
     #scene { position: relative; min-height: 70vh; border-radius: 16px; overflow: hidden; border: 1px solid #d6dee9;
       background: url('/assets/background.png') center/cover no-repeat;
     }
+    #scene.tv-dim { filter: brightness(0.75) saturate(0.8); }
     #scene::before,
     #scene::after {
       content: none;
     }
-    .scene-header { position: absolute; z-index: 3; top: 10px; left: 12px; right: 12px; display:flex; align-items:center; justify-content:flex-end; pointer-events: none; }
-    .scene-title { font-family: "Press Start 2P", "Space Mono", monospace; font-size: 12px; }
-    #repGrid {
+    #scene-container {
       position: absolute;
-      inset: 0;
-      z-index: 2;
-      width: 100%;
-      height: 100%;
-      padding: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 50%;
+      z-index: 1;
     }
-    .rep {
-      position: absolute;
-      width: 140px;
-      height: 170px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-    }
-    .rep model-viewer {
-      width: 140px;
-      height: 170px;
-      background: transparent;
-    }
-    .rep .name-tag {
-      position: absolute;
-      bottom: -18px;
-      font-size: 10px;
-      color: var(--muted);
-      text-align:center;
-      width: 100%;
-      opacity: 0.8;
-    }
-    .rep .tooltip {
-      position: absolute;
-      bottom: 64px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #ffffff;
-      border: 1px solid #d6dee9;
-      border-radius: 8px;
-      padding: 8px;
-      font-size: 11px;
-      width: 160px;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.2s ease, transform 0.2s ease;
-      color: var(--text);
-      z-index: 5;
-    }
-    .rep:hover .tooltip { opacity: 1; transform: translateX(-50%) translateY(-4px); }
-    .rep .speech {
-      position: absolute;
-      bottom: 150px;
-      left: 50%;
-      transform: translateX(-50%);
+    #scene-container canvas { display: block; width: 100%; height: 100%; }
+    .scene-header { position: absolute; z-index: 6; top: 10px; left: 12px; right: 12px; display:flex; align-items:center; justify-content:flex-end; pointer-events: none; }
+    .speaker-stack { display:flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+    #currentSpeech {
       background: #ffffff;
       border: 1px solid var(--accent-2);
-      border-radius: 10px;
-      padding: 6px 8px;
-      font-size: 10px;
-      width: 240px;
+      border-radius: 18px;
+      padding: 8px 10px;
+      font-size: 11px;
+      width: min(360px, 70vw);
       color: #1f2a3a;
+      line-height: 1.35;
+      white-space: pre-wrap;
+    }
+    .scene-title { font-family: "Press Start 2P", "Space Mono", monospace; font-size: 12px; }
+    #repTooltip {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      z-index: 5;
+      background: #ffffff;
+      border: 1px solid #d6dee9;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 11px;
+      color: var(--text);
+      pointer-events: none;
+      box-shadow: 0 10px 22px rgba(12,20,36,0.14);
+      white-space: pre-wrap;
+      max-width: 260px;
+    }
+
+    #cutscene {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       opacity: 0;
       pointer-events: none;
+      z-index: 10;
       transition: opacity 0.2s ease;
-      z-index: 6;
     }
-    .rep.speaking .speech { opacity: 1; }
-    .party-dem { --rep-color: var(--blue); }
-    .party-gop { --rep-color: var(--red); }
-    .party-ind { --rep-color: var(--ind); }
+    #cutscene.active { opacity: 1; pointer-events: auto; }
+    #cutsceneShade {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.92);
+    }
+    #cutsceneFrame {
+      position: relative;
+      width: min(60vw, 480px);
+      aspect-ratio: 16 / 9;
+      background: #0b0f14;
+      border: 2px solid #d6dee9;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 18px 40px rgba(10, 18, 30, 0.25);
+      transform: scaleY(0.02);
+      opacity: 0;
+    }
+    #cutscene.active #cutsceneFrame {
+      animation: tv-on 0.35s ease forwards;
+    }
+    #cutscene.off #cutsceneFrame {
+      animation: tv-off 0.3s ease forwards;
+    }
+    #cutsceneVideo {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #0b0f14;
+    }
+    #liveBadge {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #ffffff;
+      background: rgba(16, 24, 36, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 4px 8px;
+      border-radius: 999px;
+      letter-spacing: 0.6px;
+    }
+    #liveDot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ff3b3b;
+      box-shadow: 0 0 8px rgba(255, 59, 59, 0.7);
+      animation: live-pulse 1s ease-in-out infinite;
+    }
+    @keyframes live-pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+    @keyframes tv-on {
+      0% { transform: scaleY(0.05) scaleX(0.6); opacity: 0; }
+      60% { transform: scaleY(1.02) scaleX(1.02); opacity: 1; }
+      100% { transform: scaleY(1) scaleX(1); opacity: 1; }
+    }
+    @keyframes tv-off {
+      0% { transform: scaleY(1) scaleX(1); opacity: 1; }
+      70% { transform: scaleY(0.08) scaleX(0.6); opacity: 0.7; }
+      100% { transform: scaleY(0.01) scaleX(0.2); opacity: 0; }
+    }
 
     #chatLog { height: 180px; overflow: auto; background: #ffffff; border: 1px solid #e1e7f0; border-radius: 8px; padding: 6px; font-size: 11px; }
     .chat-line { display:flex; gap: 6px; margin-bottom: 4px; }
@@ -454,16 +546,20 @@ public class PollingServer {
 
     #ticker {
       position: fixed;
-      left: 0; right: 0; bottom: 0;
+      left: 16px;
+      bottom: 16px;
       background: #ffffff;
-      border-top: 1px solid #d6dee9;
-      padding: 6px 12px;
+      border: 1px solid #d6dee9;
+      border-radius: 12px;
+      padding: 8px 12px;
       display:flex;
       gap: 10px;
       align-items:center;
       font-size: 11px;
       color: #1f2a3a;
       z-index: 20;
+      width: min(380px, 60vw);
+      box-shadow: 0 10px 24px rgba(12,20,36,0.12);
     }
     #latestLine { color: #2f6fe5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
@@ -519,19 +615,32 @@ public class PollingServer {
 </head>
 <body>
   <header>
-    <span id="stageTitle" class="badge">Loading Stage</span>
-    <div class="brand">
+    <div class="header-top">
+      <div class="brand">
       <img src="/assets/quorum.png" alt="Quorum" />
       <div class="title">Quorum</div>
+      </div>
+      <span id="statusBadge" class="badge">Connecting...</span>
     </div>
-    <span id="statusBadge" class="badge">Connecting...</span>
+    <div id="stageFlow" class="stage-flow" aria-label="Simulation flow"></div>
   </header>
   <div id="layout">
     <section id="scene">
+      <div id="scene-container"></div>
       <div class="scene-header">
-        <div id="currentSpeaker" class="badge">Waiting for speaker...</div>
+        <div class="speaker-stack">
+          <div id="currentSpeaker" class="badge">Waiting for speaker...</div>
+          <div id="currentSpeech" class="hidden"></div>
+        </div>
       </div>
-      <div id="repGrid"></div>
+      <div id="repTooltip" class="hidden"></div>
+      <div id="cutscene">
+        <div id="cutsceneShade"></div>
+      <div id="cutsceneFrame">
+        <div id="liveBadge"><span id="liveDot"></span>LIVE</div>
+        <video id="cutsceneVideo" playsinline></video>
+      </div>
+      </div>
     </section>
     <aside id="sidebar">
       <div class="panel">
@@ -582,13 +691,18 @@ public class PollingServer {
     <span class="badge">Latest</span>
     <span id="latestLine"></span>
   </div>
-  <script>
+  <script type="module">
+    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+    import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+    import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
+
     let nextIndex = 0;
     const logEl = document.getElementById('log');
     const statusBadge = document.getElementById('statusBadge');
-    const stageTitle = document.getElementById('stageTitle');
+    const stageFlow = document.getElementById('stageFlow');
     const latestLine = document.getElementById('latestLine');
     const currentSpeaker = document.getElementById('currentSpeaker');
+    const currentSpeech = document.getElementById('currentSpeech');
     const voteStats = document.getElementById('voteStats');
     const voteNotice = document.getElementById('voteNotice');
     const yesBtn = document.getElementById('yesBtn');
@@ -598,9 +712,40 @@ public class PollingServer {
     const revisedSummary = document.getElementById('revisedSummary');
     const revisedChanges = document.getElementById('revisedChanges');
     const revisedText = document.getElementById('revisedText');
-    const repGrid = document.getElementById('repGrid');
+    const sceneContainer = document.getElementById('scene-container');
+    const repTooltip = document.getElementById('repTooltip');
+    const scene = document.getElementById('scene');
+    const cutscene = document.getElementById('cutscene');
+    const cutsceneVideo = document.getElementById('cutsceneVideo');
+    const cutsceneFrame = document.getElementById('cutsceneFrame');
     const celebration = document.getElementById('celebration');
     let celebrated = false;
+    let logsPrimed = false;
+    let currentOutcome = '';
+    let lastOutcomeCutscene = '';
+    const cutsceneQueue = [];
+    let cutscenePlaying = false;
+    let scene3d = null;
+    let repsLoaded = false;
+    let lastStage = '';
+    let lastStageRunning = false;
+    const STAGE_NAMES = [
+      'Pull Bill',
+      'Parse Bill',
+      'Judge Assign Agency',
+      'Committee Deliberation',
+      'Primary Floor Debate',
+      'Public Forum',
+      'Threshold Decision',
+      'Revise Failed Bill',
+      'Finalize',
+      'Complete'
+    ];
+    const NODE_CUTSCENES = {
+      CommitteeDeliberation: '/assets/videos/Committee.mov',
+      PrimaryFloorDebate: '/assets/videos/Talking.mov',
+      PublicForum: '/assets/videos/Talking.mov'
+    };
 
     async function fetchLogs() {
       try {
@@ -610,8 +755,18 @@ public class PollingServer {
         if (data.lines && data.lines.length) {
           data.lines.forEach(line => {
             logEl.textContent += line + "\\n";
+            updateOutcomeFromLine(line);
+            if (logsPrimed) {
+              const match = line.match(/^==> Done: (.+)$/);
+              if (match) {
+                handleNodeDone(match[1].trim());
+              }
+            }
           });
           logEl.scrollTop = logEl.scrollHeight;
+        }
+        if (!logsPrimed) {
+          logsPrimed = true;
         }
         nextIndex = data.nextIndex || nextIndex;
       } catch (err) {
@@ -626,12 +781,15 @@ public class PollingServer {
         const data = await res.json();
         const open = !!data.open;
         statusBadge.textContent = open ? 'Voting Open' : 'Voting Closed';
-        stageTitle.textContent = data.currentStage || 'Idle';
-        if (data.stageRunning) {
-          stageTitle.classList.add('stage-running');
-        } else {
-          stageTitle.classList.remove('stage-running');
+        updateStageFlow(data.currentStage || 'Idle', data.stageRunning);
+        if (lastStageRunning && !data.stageRunning && data.currentStage) {
+          const nodeName = stageDisplayToNode(data.currentStage);
+          if (nodeName) {
+            handleNodeDone(nodeName);
+          }
         }
+        lastStage = data.currentStage || '';
+        lastStageRunning = !!data.stageRunning;
         latestLine.textContent = data.lastLine || '';
         voteStats.textContent = `YES ${data.yes} | NO ${data.no} | TOTAL ${data.total}`;
         const alreadyVoted = !!data.alreadyVoted;
@@ -646,6 +804,12 @@ public class PollingServer {
         }
         updateSpeaker(data);
         maybeCelebrate(data.finalOutcome);
+        if (data.finalOutcome) {
+          currentOutcome = String(data.finalOutcome || '').trim().toUpperCase();
+          if (currentOutcome && currentOutcome !== 'PASS' && currentOutcome !== 'KILLED') {
+            lastOutcomeCutscene = '';
+          }
+        }
       } catch (err) {
         statusBadge.textContent = 'Disconnected';
       }
@@ -696,13 +860,7 @@ public class PollingServer {
     const chatLog = document.getElementById('chatLog');
     const chatMessage = document.getElementById('chatMessage');
     const chatSend = document.getElementById('chatSend');
-    const repMap = new Map();
     let glbFiles = [];
-    const REP_W = 140;
-    const REP_H = 170;
-    const BASE_PITCH = 0;
-    const BASE_ROLL = 0;
-    const BASE_YAW_OFFSET = 180;
     let currentSpeakerId = '';
 
     async function fetchChat() {
@@ -735,73 +893,465 @@ public class PollingServer {
       fetchChat();
     }
 
+    class RepActor {
+      constructor(data, url, loader) {
+        this.data = data;
+        this.url = url;
+        this.loader = loader;
+        this.group = new THREE.Group();
+        this.group.userData.repId = data.id;
+        this.basePosition = new THREE.Vector3();
+        this.targetPosition = new THREE.Vector3();
+        this.facingOffset = -Math.PI / 2;
+        this.rotationY = this.facingOffset;
+        this.targetRotationY = this.facingOffset;
+        this.turnSpeed = 6.0;
+        this.bobPhase = Math.random() * Math.PI * 2;
+        this.bobSpeed = 1.3 + Math.random() * 0.6;
+        this.bobAmount = 0.03;
+        this.isSpeaking = false;
+        this.mixer = null;
+        this.speakingGlow = null;
+        this._buildIndicators();
+      }
+
+      async load() {
+        if (!this.url) {
+          this._buildFallback();
+          return;
+        }
+        try {
+          const gltf = await new Promise((resolve, reject) => {
+            this.loader.load(this.url, resolve, undefined, reject);
+          });
+          const model = gltf.scene;
+          model.traverse((child) => {
+            if (child.isMesh) {
+              child.castShadow = true;
+              child.receiveShadow = true;
+              child.userData.repId = this.data.id;
+              if (child.isSkinnedMesh) child.frustumCulled = false;
+            }
+          });
+
+          const box = new THREE.Box3().setFromObject(model);
+          const size = box.getSize(new THREE.Vector3());
+          const targetHeight = 6.3;
+          const scale = size.y > 0 ? targetHeight / size.y : 1;
+          model.scale.setScalar(scale);
+
+          const scaledBox = new THREE.Box3().setFromObject(model);
+          const center = scaledBox.getCenter(new THREE.Vector3());
+          model.position.y = -scaledBox.min.y;
+          model.position.x = -center.x;
+          model.position.z = -center.z;
+          model.rotation.y = Math.PI;
+          this.group.add(model);
+
+          if (gltf.animations && gltf.animations.length) {
+            this.mixer = new THREE.AnimationMixer(model);
+            const action = this.mixer.clipAction(gltf.animations[0]);
+            action.play();
+          }
+        } catch (err) {
+          this._buildFallback();
+        }
+      }
+
+      _buildIndicators() {
+        const ring = new THREE.Mesh(
+          new THREE.RingGeometry(0.35, 0.45, 32),
+          new THREE.MeshBasicMaterial({ color: 0xd1d5db, side: THREE.DoubleSide, transparent: true, opacity: 0.8 })
+        );
+        ring.rotation.x = -Math.PI / 2;
+        ring.position.y = 0.02;
+        this.group.add(ring);
+
+        const glow = new THREE.Mesh(
+          new THREE.RingGeometry(0.5, 0.7, 32),
+          new THREE.MeshBasicMaterial({ color: 0xffd9b3, side: THREE.DoubleSide, transparent: true, opacity: 0 })
+        );
+        glow.rotation.x = -Math.PI / 2;
+        glow.position.y = 0.02;
+        this.group.add(glow);
+        this.speakingGlow = glow;
+      }
+
+      _buildFallback() {
+        const mesh = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.7, 0.7, 3.6, 12),
+          new THREE.MeshStandardMaterial({ color: 0xb8b8b8 })
+        );
+        mesh.castShadow = true;
+        mesh.position.y = 1.8;
+        mesh.userData.repId = this.data.id;
+        this.group.add(mesh);
+      }
+
+      setSpeaking(active) {
+        this.isSpeaking = Boolean(active);
+        if (this.speakingGlow) {
+          this.speakingGlow.material.opacity = active ? 0.35 : 0;
+        }
+      }
+
+      setPosition(x, y, z) {
+        this.basePosition.set(x, y, z);
+        this.targetPosition.set(x, y, z);
+        this.group.position.set(x, y, z);
+      }
+
+      moveTo(x, y, z) {
+        this.targetPosition.set(x, y, z);
+      }
+
+      returnToBase() {
+        this.targetPosition.copy(this.basePosition);
+      }
+
+      faceTowards(x, z) {
+        const dx = x - this.group.position.x;
+        const dz = z - this.group.position.z;
+        const len = Math.hypot(dx, dz);
+        if (len < 1e-5) return;
+        const dirX = dx / len;
+        const dirZ = dz / len;
+        this.targetRotationY = Math.atan2(dirX, dirZ) + Math.PI + this.facingOffset;
+      }
+
+      update(delta) {
+        if (this.mixer) {
+          this.mixer.update(delta);
+        }
+        this.bobPhase += this.bobSpeed * delta;
+        const bobOffset = Math.sin(this.bobPhase) * this.bobAmount;
+
+        const pos = this.group.position;
+        const dx = this.targetPosition.x - pos.x;
+        const dz = this.targetPosition.z - pos.z;
+        const moveSpeed = 2.4 * delta;
+        if (Math.abs(dx) > 0.01 || Math.abs(dz) > 0.01) {
+          pos.x += dx * moveSpeed;
+          pos.z += dz * moveSpeed;
+        }
+        pos.y = this.targetPosition.y + bobOffset;
+
+        let diff = this.targetRotationY - this.rotationY;
+        diff = (diff + Math.PI) % (Math.PI * 2);
+        if (diff < 0) diff += Math.PI * 2;
+        diff -= Math.PI;
+        const maxStep = this.turnSpeed * delta;
+        const step = Math.abs(diff) <= maxStep ? diff : Math.sign(diff) * maxStep;
+        this.rotationY += step;
+        this.group.rotation.y = this.rotationY;
+      }
+    }
+
+    class ParliamentScene {
+      constructor(container) {
+        this.container = container;
+        this.scene = new THREE.Scene();
+        this.camera = null;
+        this.renderer = null;
+        this.controls = null;
+        this.raycaster = new THREE.Raycaster();
+        this.mouse = new THREE.Vector2();
+        this.clock = new THREE.Clock();
+        this.reps = new Map();
+        this.pickables = [];
+        this.repsGroup = new THREE.Group();
+        this.loader = new GLTFLoader();
+        this.currentSpeakerId = '';
+        this.onRepHover = null;
+        this.onRepLeave = null;
+        this.onTick = null;
+        this.hoveredId = '';
+        this.frustumSize = 24;
+        this.rowSpacing = 4.2;
+        this.seatSpacing = 4.2;
+        this.ambientEnabled = true;
+        this._ambientTime = 0;
+      }
+
+      async init() {
+        this.scene.background = null;
+        this.scene.add(this.repsGroup);
+        this._setupCamera();
+        this._setupRenderer();
+        this._setupLights();
+        this._setupFloor();
+        this._setupControls();
+        this._bindEvents();
+        this._animate();
+      }
+
+      _setupCamera() {
+        const rect = this.container.getBoundingClientRect();
+        const aspect = rect.width / rect.height;
+        this.camera = new THREE.OrthographicCamera(
+          this.frustumSize * aspect / -2,
+          this.frustumSize * aspect / 2,
+          this.frustumSize / 2,
+          this.frustumSize / -2,
+          0.1,
+          1000
+        );
+        this.camera.position.set(18, 18, 18);
+        this.camera.lookAt(0, -1.2, 0);
+        this.camera.updateProjectionMatrix();
+      }
+
+      _setupRenderer() {
+        this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        this.renderer.setPixelRatio(window.devicePixelRatio);
+        this.renderer.setSize(this.container.clientWidth, this.container.clientHeight);
+        this.renderer.setClearColor(0x000000, 0);
+        this.renderer.shadowMap.enabled = true;
+        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        this.container.appendChild(this.renderer.domElement);
+      }
+
+      _setupControls() {
+        this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+        this.controls.enableRotate = false;
+        this.controls.enablePan = true;
+        this.controls.enableZoom = true;
+        this.controls.minZoom = 0.6;
+        this.controls.maxZoom = 2.5;
+        this.controls.target.set(0, -1.2, 0);
+      }
+
+      _setupLights() {
+        const ambient = new THREE.AmbientLight(0xffffff, 0.7);
+        this.scene.add(ambient);
+        const key = new THREE.DirectionalLight(0xffffff, 0.8);
+        key.position.set(6, 10, 6);
+        key.castShadow = true;
+        key.shadow.mapSize.width = 2048;
+        key.shadow.mapSize.height = 2048;
+        key.shadow.camera.near = 0.5;
+        key.shadow.camera.far = 50;
+        key.shadow.camera.left = -15;
+        key.shadow.camera.right = 15;
+        key.shadow.camera.top = 15;
+        key.shadow.camera.bottom = -15;
+        this.scene.add(key);
+      }
+
+      _setupFloor() {
+        const size = 36;
+        const geometry = new THREE.PlaneGeometry(size, size);
+        const material = new THREE.MeshStandardMaterial({
+          color: 0xd8dde6,
+          roughness: 0.95,
+          transparent: true,
+          opacity: 0,
+          depthWrite: false
+        });
+        const floor = new THREE.Mesh(geometry, material);
+        floor.rotation.x = -Math.PI / 2;
+        floor.position.y = 0;
+        floor.receiveShadow = true;
+        this.scene.add(floor);
+
+        const grid = new THREE.GridHelper(size, 24, 0x9aa6b2, 0xc7d0db);
+        grid.position.y = 0.02;
+        grid.material.transparent = true;
+        grid.material.opacity = 0.45;
+        grid.material.depthWrite = false;
+        grid.material.depthTest = false;
+        grid.renderOrder = 5;
+        grid.scale.x = 1.4;
+        grid.scale.z = 0.9;
+        this.scene.add(grid);
+      }
+
+      _bindEvents() {
+        this._onPointerMove = this._onPointerMove.bind(this);
+        this._onPointerLeave = this._onPointerLeave.bind(this);
+        this._onResize = this._onResize.bind(this);
+        this.container.addEventListener('mousemove', this._onPointerMove);
+        this.container.addEventListener('mouseleave', this._onPointerLeave);
+        window.addEventListener('resize', this._onResize);
+      }
+
+      async loadRepresentatives(reps, glbUrls) {
+        this.reps.clear();
+        this.pickables = [];
+        while (this.repsGroup.children.length) {
+          this.repsGroup.remove(this.repsGroup.children[0]);
+        }
+        this._ambientTime = 0;
+        const sorted = [...reps].sort((a, b) => a.name.localeCompare(b.name));
+        await this._arrangeRandom(sorted, glbUrls);
+      }
+
+      async _arrangeRandom(reps, glbUrls) {
+        const total = reps.length;
+        if (!total) return;
+        const areaX = Math.max(8, this.seatSpacing * 4.5);
+        const areaZ = Math.max(8, this.rowSpacing * 3.5);
+        const positions = [];
+        const minDist = Math.min(this.seatSpacing, this.rowSpacing) * 0.6;
+        for (let i = 0; i < total; i++) {
+          let x = 0;
+          let z = 0;
+          let attempts = 0;
+          do {
+            x = (Math.random() - 0.5) * areaX;
+            z = (Math.random() - 0.5) * areaZ;
+            attempts++;
+          } while (attempts < 40 && positions.some(p => Math.hypot(p.x - x, p.z - z) < minDist));
+          positions.push({ x, z });
+        }
+
+        for (let i = 0; i < total; i++) {
+          const repData = reps[i];
+          const pos = positions[i];
+          const url = glbUrls.length ? glbUrls[i % glbUrls.length] : '';
+          const actor = new RepActor(repData, url, this.loader);
+          await actor.load();
+          actor.setPosition(pos.x, 0, pos.z);
+          actor.group.userData.repId = repData.id;
+          actor.group.traverse((child) => {
+            if (child.isMesh) child.userData.repId = repData.id;
+          });
+          this.repsGroup.add(actor.group);
+          this.reps.set(repData.id, actor);
+          actor._ambient = {
+            nextWanderAt: this._ambientTime + 1 + Math.random() * 4
+          };
+          this._collectPickables(actor.group);
+        }
+      }
+
+      _collectPickables(group) {
+        group.traverse((child) => {
+          if (child.isMesh) this.pickables.push(child);
+        });
+      }
+
+      setCurrentSpeaker(repId) {
+        if (this.currentSpeakerId && this.reps.has(this.currentSpeakerId)) {
+          this.reps.get(this.currentSpeakerId).setSpeaking(false);
+        }
+        this.currentSpeakerId = repId || '';
+        if (this.currentSpeakerId && this.reps.has(this.currentSpeakerId)) {
+          this.reps.get(this.currentSpeakerId).setSpeaking(true);
+        }
+      }
+
+      getRepScreenPosition(repId) {
+        const actor = this.reps.get(repId);
+        if (!actor) return null;
+        const pos = actor.group.position.clone();
+        pos.y -= 0.9;
+        return this._project(pos);
+      }
+
+      _project(position) {
+        const vector = position.clone();
+        vector.project(this.camera);
+        const rect = this.container.getBoundingClientRect();
+        return {
+          x: (vector.x * 0.5 + 0.5) * rect.width,
+          y: (-vector.y * 0.5 + 0.5) * rect.height
+        };
+      }
+
+      _onPointerMove(event) {
+        const rect = this.container.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        this.mouse.x = (x / rect.width) * 2 - 1;
+        this.mouse.y = -(y / rect.height) * 2 + 1;
+        this.raycaster.setFromCamera(this.mouse, this.camera);
+        const hits = this.raycaster.intersectObjects(this.pickables, true);
+        if (!hits.length) {
+          if (this.hoveredId && this.onRepLeave) this.onRepLeave();
+          this.hoveredId = '';
+          return;
+        }
+        const repId = hits[0].object.userData.repId;
+        if (!repId || !this.reps.has(repId)) return;
+        const actor = this.reps.get(repId);
+        if (this.onRepHover) {
+          this.onRepHover(actor.data, { x, y });
+        }
+        this.hoveredId = repId;
+      }
+
+      _onPointerLeave() {
+        if (this.hoveredId && this.onRepLeave) this.onRepLeave();
+        this.hoveredId = '';
+      }
+
+      _onResize() {
+        if (!this.camera || !this.renderer) return;
+        const rect = this.container.getBoundingClientRect();
+        const aspect = rect.width / rect.height;
+        this.camera.left = this.frustumSize * aspect / -2;
+        this.camera.right = this.frustumSize * aspect / 2;
+        this.camera.top = this.frustumSize / 2;
+        this.camera.bottom = this.frustumSize / -2;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize(rect.width, rect.height);
+      }
+
+      _animate() {
+        requestAnimationFrame(() => this._animate());
+        const delta = this.clock.getDelta();
+        this._ambientTime += delta;
+        if (this.ambientEnabled) {
+          this._updateAmbientWander();
+        }
+        for (const actor of this.reps.values()) {
+          actor.update(delta);
+        }
+        if (this.controls) this.controls.update();
+        if (this.onTick) this.onTick();
+        this.renderer.render(this.scene, this.camera);
+      }
+
+      _updateAmbientWander() {
+        for (const actor of this.reps.values()) {
+          if (!actor?._ambient) continue;
+          if (actor.isSpeaking || actor.data.id === this.currentSpeakerId) continue;
+          if (this._ambientTime < actor._ambient.nextWanderAt) continue;
+
+          const r = 1.6;
+          const angle = Math.random() * Math.PI * 2;
+          const radius = Math.random() * r;
+          const x = actor.basePosition.x + Math.cos(angle) * radius;
+          const z = actor.basePosition.z + Math.sin(angle) * radius;
+          actor.moveTo(x, actor.basePosition.y, z);
+          actor.faceTowards(x, z);
+          actor._ambient.nextWanderAt = this._ambientTime + 1.2 + Math.random() * 3.0;
+        }
+      }
+    }
+
+    async function initScene() {
+      if (scene3d || !sceneContainer) return;
+      scene3d = new ParliamentScene(sceneContainer);
+      await scene3d.init();
+      scene3d.onRepHover = (rep) => showTooltip(rep);
+      scene3d.onRepLeave = () => hideTooltip();
+    }
+
     async function fetchReps() {
       try {
         const res = await fetch('/reps', { cache: 'no-store' });
         if (!res.ok) throw new Error('reps fetch failed');
         const reps = await res.json();
+        await initScene();
         if (glbFiles.length === 0) {
           glbFiles = await fetchGlbFiles();
         }
-        repGrid.textContent = '';
-        repPositions.length = 0;
-        const bounds = repGrid.getBoundingClientRect();
-        reps.sort((a, b) => a.name.localeCompare(b.name));
-        reps.forEach((rep, idx) => {
-          const partyClass = partyToClass(rep.party);
-          const card = document.createElement('div');
-          card.className = `rep ${partyClass}`;
-          card.dataset.id = rep.id;
-          card.style.animationDelay = `${(idx % 10) * 0.1}s`;
-          const pos = randomSpot(idx, bounds);
-          repPositions.push(pos);
-          card.style.left = `${pos.x}px`;
-          card.style.top = `${pos.y}px`;
-          const model = document.createElement('model-viewer');
-          model.setAttribute('loading', 'lazy');
-          model.setAttribute('interaction-prompt', 'none');
-          model.setAttribute('bounds', 'tight');
-          model.setAttribute('camera-orbit', '0deg 75deg 3.8m');
-          model.setAttribute('camera-target', '0m 1m 0m');
-          model.setAttribute('min-camera-orbit', '0deg 75deg 3.8m');
-          model.setAttribute('max-camera-orbit', '0deg 75deg 3.8m');
-          model.setAttribute('field-of-view', '28deg');
-          model.setAttribute('environment-image', 'neutral');
-          model.setAttribute('shadow-intensity', '0.8');
-          model.setAttribute('exposure', '1.1');
-          const glb = pickGlb(idx);
-          if (glb) {
-            model.setAttribute('src', glb);
-            model.setAttribute('autoplay', '');
-          }
-          model.addEventListener('load', () => {
-            const animations = model.availableAnimations || [];
-            const walk = animations.find(name => /walk|run|move/i.test(name)) || '';
-            const idle = animations.find(name => /idle|stand|rest/i.test(name)) || '';
-            if (walk) model.dataset.walkAnim = walk;
-            if (idle) model.dataset.idleAnim = idle;
-            const initial = walk || idle || (animations[0] || '');
-            if (initial) {
-              model.setAttribute('animation-name', initial);
-              model.setAttribute('autoplay', '');
-            }
-          });
-          const nameTag = document.createElement('div');
-          nameTag.className = 'name-tag';
-          nameTag.textContent = rep.name.split(' ').slice(-1)[0];
-          const tooltip = document.createElement('div');
-          tooltip.className = 'tooltip';
-          tooltip.innerHTML = `<strong>${rep.name}</strong><br/>Party: ${rep.party}<br/>Agency: ${rep.agency || 'Unassigned'}`;
-          const speech = document.createElement('div');
-          speech.className = 'speech';
-          speech.textContent = '';
-          card.appendChild(model);
-          card.appendChild(nameTag);
-          card.appendChild(tooltip);
-          card.appendChild(speech);
-          repGrid.appendChild(card);
-          repMap.set(rep.id, card);
-        });
+        if (!repsLoaded || (scene3d && scene3d.reps.size !== reps.length)) {
+          await scene3d.loadRepresentatives(reps, glbFiles);
+          repsLoaded = true;
+        }
       } catch (err) {
         statusBadge.textContent = 'Disconnected';
       }
@@ -819,132 +1369,15 @@ public class PollingServer {
       }
     }
 
-    function pickGlb(idx) {
-      if (!glbFiles.length) return '';
-      return glbFiles[idx % glbFiles.length];
+    function showTooltip(rep) {
+      if (!repTooltip) return;
+      repTooltip.innerHTML = `<strong>${rep.name}</strong><br/>Party: ${rep.party}<br/>Agency: ${rep.agency || 'Unassigned'}`;
+      repTooltip.classList.remove('hidden');
     }
 
-    const repPositions = [];
-
-    function randomSpot(seed, bounds) {
-      const width = Math.max(0, bounds.width - REP_W);
-      const height = Math.max(0, bounds.height - REP_H);
-      const minY = Math.max(0, Math.floor(bounds.height * 0.5));
-      const maxY = Math.max(minY, height);
-      const x = Math.floor(Math.random() * Math.max(1, width));
-      const y = minY + Math.floor(Math.random() * Math.max(1, maxY - minY));
-      const speed = 10 + Math.random() * 20;
-      const angle = Math.random() * Math.PI * 2;
-      const vx = Math.cos(angle) * speed;
-      const vy = Math.sin(angle) * speed;
-      const heading = headingFromVelocity(vx, vy);
-      return {
-        x,
-        y,
-        seed,
-        vx,
-        vy,
-        heading,
-        mode: 'move',
-        modeUntil: 0
-      };
-    }
-
-    let lastFrame = 0;
-    function animateWander(ts) {
-      if (!lastFrame) lastFrame = ts;
-      const dt = Math.min(0.05, (ts - lastFrame) / 1000);
-      lastFrame = ts;
-      const bounds = repGrid.getBoundingClientRect();
-      const width = Math.max(0, bounds.width - REP_W);
-      const height = Math.max(0, bounds.height - REP_H);
-      const minY = Math.max(0, Math.floor(bounds.height * 0.5));
-      const maxY = Math.max(minY, height);
-      repPositions.forEach((pos, idx) => {
-        if (!pos.modeUntil || ts > pos.modeUntil) {
-          const willIdle = Math.random() < 0.6;
-          if (willIdle) {
-            pos.mode = 'idle';
-            pos.vx = 0;
-            pos.vy = 0;
-            pos.modeUntil = ts + (3500 + Math.random() * 3500);
-          } else {
-            pos.mode = 'move';
-            const angle = Math.random() * Math.PI * 2;
-            const speed = 14 + Math.random() * 22;
-            pos.vx = Math.cos(angle) * speed;
-            pos.vy = Math.sin(angle) * speed;
-            pos.modeUntil = ts + (2500 + Math.random() * 2500);
-          }
-        }
-
-        const isIdle = pos.mode === 'idle';
-        let nx = pos.x;
-        let ny = pos.y;
-        if (!isIdle) {
-          nx = pos.x + pos.vx * dt;
-          ny = pos.y + pos.vy * dt;
-          if (nx <= 0 || nx >= width) {
-            pos.vx *= -1;
-            nx = Math.max(0, Math.min(width, nx));
-          }
-          if (ny <= minY || ny >= maxY) {
-            pos.vy *= -1;
-            ny = Math.max(minY, Math.min(maxY, ny));
-          }
-          const targetHeading = headingFromVelocity(pos.vx, pos.vy);
-          pos.heading = smoothAngle(pos.heading, targetHeading, 0.15);
-        }
-        pos.x = nx;
-        pos.y = ny;
-        const card = repGrid.children[idx];
-        if (card) {
-          card.style.left = `${nx}px`;
-          card.style.top = `${ny}px`;
-          const model = card.querySelector('model-viewer');
-          if (model) {
-            const heading = pos.heading || 0;
-            model.setAttribute('orientation', `${BASE_PITCH}deg ${heading}deg ${BASE_ROLL}deg`);
-            const speed = Math.hypot(pos.vx, pos.vy);
-            const walk = model.dataset.walkAnim || '';
-            const idle = model.dataset.idleAnim || '';
-            const desired = isIdle || speed < 1 ? idle : walk;
-            if (desired && model.getAttribute('animation-name') !== desired) {
-              model.setAttribute('animation-name', desired);
-            }
-            if (isIdle || speed < 1) {
-              if (idle) {
-                model.play();
-              } else {
-                model.pause();
-              }
-            } else {
-              model.play();
-            }
-          }
-        }
-      });
-      requestAnimationFrame(animateWander);
-    }
-
-    function smoothAngle(current, target, factor) {
-      if (Number.isNaN(current)) return target;
-      let diff = ((target - current + 540) % 360) - 180;
-      return current + diff * factor;
-    }
-
-    function headingFromVelocity(vx, vy) {
-      if (vx === 0 && vy === 0) return 0;
-      const raw = Math.atan2(vx, -vy) * (180 / Math.PI);
-      return (raw + BASE_YAW_OFFSET + 360) % 360;
-    }
-
-    function partyToClass(party) {
-      const text = (party || '').toLowerCase();
-      if (text.includes('dem')) return 'party-dem';
-      if (text.includes('rep')) return 'party-gop';
-      if (text.includes('ind')) return 'party-ind';
-      return 'party-ind';
+    function hideTooltip() {
+      if (!repTooltip) return;
+      repTooltip.classList.add('hidden');
     }
 
     function updateSpeaker(data) {
@@ -952,16 +1385,13 @@ public class PollingServer {
       const speakerName = data.currentSpeakerName || 'Waiting for speaker...';
       const speakerText = data.currentSpeakerText || '';
       currentSpeaker.textContent = speakerId ? `${speakerName} speaking` : 'Waiting for speaker...';
-      if (currentSpeakerId && repMap.has(currentSpeakerId)) {
-        const prev = repMap.get(currentSpeakerId);
-        prev.classList.remove('speaking');
-        prev.querySelector('.speech').textContent = '';
+      if (currentSpeech) {
+        currentSpeech.textContent = speakerText || '';
+        currentSpeech.classList.toggle('hidden', !speakerId || !speakerText);
       }
       currentSpeakerId = speakerId;
-      if (speakerId && repMap.has(speakerId)) {
-        const next = repMap.get(speakerId);
-        next.classList.add('speaking');
-        next.querySelector('.speech').textContent = speakerText || `${speakerName} speaking`;
+      if (scene3d) {
+        scene3d.setCurrentSpeaker(speakerId);
       }
     }
 
@@ -1015,6 +1445,147 @@ public class PollingServer {
       return `hsl(${hue}, 65%, 70%)`;
     }
 
+    function renderStageFlow() {
+      stageFlow.textContent = '';
+      STAGE_NAMES.forEach((name, idx) => {
+        const node = document.createElement('span');
+        node.className = 'stage-node';
+        node.dataset.stage = normalizeStage(name);
+        node.textContent = name;
+        stageFlow.appendChild(node);
+        if (idx < STAGE_NAMES.length - 1) {
+          const arrow = document.createElement('span');
+          arrow.className = 'stage-arrow';
+          arrow.textContent = '->';
+          stageFlow.appendChild(arrow);
+        }
+      });
+    }
+
+    function normalizeStage(stageText) {
+      if (!stageText) return '';
+      return stageText.replace(/\\s*Stage$/i, '').trim().toLowerCase();
+    }
+
+    function stageDisplayToNode(stageText) {
+      if (!stageText) return '';
+      const base = stageText.replace(/\\s*Stage$/i, '').trim();
+      return base.replace(/\\s+/g, '');
+    }
+
+    function updateStageFlow(stageText, isRunning) {
+      const normalized = normalizeStage(stageText);
+      stageFlow.querySelectorAll('.stage-node').forEach(node => {
+        const isActive = node.dataset.stage === normalized;
+        node.classList.toggle('active', isActive);
+        node.classList.toggle('running', isActive && isRunning);
+      });
+    }
+
+    function updateOutcomeFromLine(line) {
+      if (!line) return;
+      const finalMatch = line.match(/Final outcome after popular vote:\s*([A-Z_]+)/);
+      if (finalMatch) {
+        currentOutcome = finalMatch[1];
+        if (currentOutcome !== 'PASS' && currentOutcome !== 'KILLED') {
+          lastOutcomeCutscene = '';
+        }
+        return;
+      }
+      const match = line.match(/Outcome:\s*([A-Z_]+)/);
+      if (match) {
+        currentOutcome = match[1];
+        if (currentOutcome !== 'PASS' && currentOutcome !== 'KILLED') {
+          lastOutcomeCutscene = '';
+        }
+      }
+    }
+
+    function handleNodeDone(nodeName) {
+      const outcomeClip = outcomeClipForNode(nodeName);
+      if (outcomeClip) {
+        queueCutscene(outcomeClip);
+        return;
+      }
+      const mapped = NODE_CUTSCENES[nodeName];
+      if (mapped) {
+        queueCutscene(mapped);
+        return;
+      }
+      if (!cutscenePlaying && cutsceneQueue.length === 0) {
+        queueCutscene('/assets/videos/Talking.mov');
+      }
+    }
+
+    function outcomeClipForNode(nodeName) {
+      if (nodeName !== 'ThresholdDecision' && nodeName !== 'Finalize') {
+        return null;
+      }
+      if (currentOutcome === 'PASS' && lastOutcomeCutscene !== 'PASS') {
+        lastOutcomeCutscene = 'PASS';
+        return '/assets/videos/Pass_Bill.mov';
+      }
+      if (currentOutcome === 'KILLED' && lastOutcomeCutscene !== 'KILLED') {
+        lastOutcomeCutscene = 'KILLED';
+        return '/assets/videos/Kill_Bill.mov';
+      }
+      return null;
+    }
+
+    function queueCutscene(src) {
+      if (!src) return;
+      cutsceneQueue.push(src);
+      if (!cutscenePlaying) {
+        playNextCutscene();
+      }
+    }
+
+    function playNextCutscene() {
+      if (!cutsceneQueue.length) return;
+      const next = cutsceneQueue.shift();
+      playCutscene(next);
+    }
+
+    function playCutscene(src) {
+      cutscenePlaying = true;
+      scene.classList.add('tv-dim');
+      cutscene.classList.remove('off');
+      cutscene.classList.add('active');
+      cutsceneVideo.pause();
+      cutsceneVideo.currentTime = 0;
+      cutsceneVideo.src = src;
+      let finished = false;
+      let fallback = null;
+      const finish = () => {
+        if (finished) return;
+        finished = true;
+        cutscene.classList.add('off');
+        cutsceneVideo.pause();
+        if (fallback) clearTimeout(fallback);
+        setTimeout(() => {
+          cutscene.classList.remove('active');
+          cutscene.classList.remove('off');
+          scene.classList.remove('tv-dim');
+          cutsceneVideo.removeAttribute('src');
+          cutsceneVideo.load();
+          cutscenePlaying = false;
+          playNextCutscene();
+        }, 320);
+      };
+      cutsceneVideo.onended = finish;
+      cutsceneVideo.onerror = finish;
+      cutsceneVideo.onloadedmetadata = () => {
+        if (fallback) clearTimeout(fallback);
+        const duration = cutsceneVideo.duration;
+        const ms = Number.isFinite(duration)
+            ? Math.min(60000, Math.max(3000, duration * 1000 + 500))
+            : 15000;
+        fallback = setTimeout(finish, ms);
+      };
+      fallback = setTimeout(finish, 15000);
+      cutsceneVideo.play();
+    }
+
 
     yesBtn.addEventListener('click', () => vote('yes'));
     noBtn.addEventListener('click', () => vote('no'));
@@ -1032,8 +1603,8 @@ public class PollingServer {
     fetchStatus();
     fetchChat();
     fetchBill();
+    renderStageFlow();
     fetchReps();
-    requestAnimationFrame(animateWander);
   </script>
 </body>
 </html>

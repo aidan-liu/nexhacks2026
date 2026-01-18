@@ -32,10 +32,14 @@
 /Users/aidanliu/projects/nexhacks2026/src/main/java/govsim/nodes/ParseBillNode.java
 /Users/aidanliu/projects/nexhacks2026/src/main/java/govsim/nodes/PrimaryFloorDebateNode.java
 /Users/aidanliu/projects/nexhacks2026/src/main/java/govsim/nodes/PublicForumNode.java
+/Users/aidanliu/projects/nexhacks2026/src/main/java/govsim/nodes/PullBillNode.java
 /Users/aidanliu/projects/nexhacks2026/src/main/java/govsim/nodes/ReviseFailedBillNode.java
 /Users/aidanliu/projects/nexhacks2026/src/main/java/govsim/nodes/ThresholdDecisionNode.java
+/Users/aidanliu/projects/nexhacks2026/src/main/java/govsim/web/BillStore.java
 /Users/aidanliu/projects/nexhacks2026/src/main/java/govsim/web/ChatStore.java
 /Users/aidanliu/projects/nexhacks2026/src/main/java/govsim/web/LogStore.java
 /Users/aidanliu/projects/nexhacks2026/src/main/java/govsim/web/LogTeeOutputStream.java
 /Users/aidanliu/projects/nexhacks2026/src/main/java/govsim/web/PollingServer.java
+/Users/aidanliu/projects/nexhacks2026/src/main/java/govsim/web/RepsStore.java
+/Users/aidanliu/projects/nexhacks2026/src/main/java/govsim/web/StatusStore.java
 /Users/aidanliu/projects/nexhacks2026/src/main/java/govsim/web/VoteBox.java

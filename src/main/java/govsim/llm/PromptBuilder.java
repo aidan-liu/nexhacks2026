@@ -107,6 +107,7 @@ No extra keys. No markdown.
 
     return """
 You are the LLM Judge. Assign this bill to the best agency.
+Evaluate every agency before choosing. Score each agency based on fit.
 
 AGENCIES:
 %s
@@ -115,9 +116,16 @@ BILL:
 %s
 
 Return STRICT JSON:
-{ "selectedAgencyId": "...", "rationale": "...", "confidence": 0.0 }
-If uncertain, set confidence to 0.5. rationale must be a short string.
-No extra keys. Use selectedAgencyId exactly as listed above.
+{
+  "selectedAgencyId": "...",
+  "rationale": "...",
+  "confidence": 0.0,
+  "scores": { "agencyId": 0.0, "...": 0.0 }
+}
+- scores must include every agencyId listed above (0.0 to 1.0).
+- selectedAgencyId must be the highest score (break ties with best rationale).
+- If uncertain, set confidence to 0.5. rationale must be a short string.
+- Use selectedAgencyId exactly as listed above. No extra keys.
 """.formatted(agencyList, ctx.bill.rawText());
   }
 

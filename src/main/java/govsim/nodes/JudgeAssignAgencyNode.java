@@ -41,7 +41,10 @@ public class JudgeAssignAgencyNode implements Node {
       decision.confidence = 0.3;
     }
 
-    Agency selected = registry.agencyById(decision.selectedAgencyId);
+    Agency selected = resolveFromScores(decision);
+    if (selected == null) {
+      selected = registry.agencyById(decision.selectedAgencyId);
+    }
     if (selected == null) {
       selected = fallbackAgency(state.bill.rawText());
       SimulationLogger.log("[Judge] LLM returned unknown agency. Falling back to keyword match.");
@@ -66,5 +69,20 @@ public class JudgeAssignAgencyNode implements Node {
       if (text.contains(keyword.toLowerCase())) score++;
     }
     return score;
+  }
+
+  private Agency resolveFromScores(JudgeDecision decision) {
+    if (decision == null || decision.scores == null || decision.scores.isEmpty()) return null;
+    Agency best = null;
+    double bestScore = Double.NEGATIVE_INFINITY;
+    for (Agency agency : registry.agencies()) {
+      Double score = decision.scores.get(agency.id());
+      if (score == null) continue;
+      if (score > bestScore) {
+        bestScore = score;
+        best = agency;
+      }
+    }
+    return best;
   }
 }
