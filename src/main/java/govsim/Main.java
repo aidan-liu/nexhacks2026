@@ -3,6 +3,7 @@ package govsim;
 import govsim.config.AgentFactory;
 import govsim.config.AgentRegistry;
 import govsim.config.BillLoader;
+import govsim.config.FactsLoader;
 import govsim.config.SimulationConfig;
 import govsim.core.GraphRunner;
 import govsim.core.SimulationLogger;
@@ -15,6 +16,7 @@ import govsim.nodes.JudgeAssignAgencyNode;
 import govsim.nodes.ParseBillNode;
 import govsim.nodes.PrimaryFloorDebateNode;
 import govsim.nodes.PublicForumNode;
+import govsim.nodes.ReviseFailedBillNode;
 import govsim.nodes.ThresholdDecisionNode;
 import govsim.web.ChatStore;
 import govsim.web.LogStore;
@@ -51,6 +53,8 @@ public class Main {
     state.voteBox = voteBox;
     state.pollingServer = pollingServer;
     state.chatStore = chatStore;
+    FactsLoader factsLoader = new FactsLoader();
+    state.vars.put("factsPack", FactsLoader.toPromptBlock(factsLoader.load(config.factsPath())));
 
     GraphRunner runner = new GraphRunner(List.of(
         new ParseBillNode(llm),
@@ -59,8 +63,9 @@ public class Main {
         new PrimaryFloorDebateNode(registry),
         new PublicForumNode(),
         new ThresholdDecisionNode(),
+        new ReviseFailedBillNode(registry, llm),
         new FinalizeNode()
-    ));
+    ), config.maxRevisions());
 
     runner.run(state);
     SimulationLogger.log(String.valueOf(state.voteResult));

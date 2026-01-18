@@ -1,8 +1,8 @@
 package govsim.agents;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -24,19 +24,25 @@ public class AgentOutput {
 
   public static AgentOutput fromJson(String json) throws Exception {
     ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true);
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    mapper.configure(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL, true);
+    mapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS, true);
     JsonNode root;
     try {
       root = mapper.readTree(json);
-    } catch (JsonProcessingException e) {
+    } catch (Exception e) {
       String extracted = extractJsonObject(json);
       if (extracted == null) {
-        throw e;
+        return fallbackFromRaw(json);
       }
-      root = mapper.readTree(extracted);
+      try {
+        root = mapper.readTree(extracted);
+      } catch (Exception nested) {
+        return fallbackFromRaw(json);
+      }
     }
     if (root == null || !root.isObject()) {
-      throw new IllegalArgumentException("Expected JSON object for AgentOutput");
+      return fallbackFromRaw(json);
     }
     ObjectNode normalized = ((ObjectNode) root).deepCopy();
     normalizeStringArray(normalized, "proposedAmendments");
@@ -46,35 +52,14 @@ public class AgentOutput {
     normalizeTextField(normalized, "voteIntent", false);
     normalizeNumericField(normalized, "confidence");
 
-    AgentOutput out = mapper.treeToValue(normalized, AgentOutput.class);
-
-    List<String> missing = new ArrayList<>();
-    if (out.speech == null || out.speech.isBlank()) missing.add("speech");
-    if (out.stance == null || out.stance.isBlank()) missing.add("stance");
-    if (out.voteIntent == null) missing.add("voteIntent");
-    if (out.confidence == null) missing.add("confidence");
-    if (out.reasons == null) out.reasons = new ArrayList<>();
-    if (out.proposedAmendments == null) out.proposedAmendments = new ArrayList<>();
-    if (out.targetsToLobby == null) out.targetsToLobby = new ArrayList<>();
-
-    out.reasons = sanitizeList(out.reasons);
-    out.proposedAmendments = sanitizeList(out.proposedAmendments);
-    out.targetsToLobby = sanitizeList(out.targetsToLobby);
-
-    if (out.reasons.isEmpty()) {
-      out.reasons = new ArrayList<>(List.of(defaultReason(out.stance)));
+    AgentOutput out;
+    try {
+      out = mapper.treeToValue(normalized, AgentOutput.class);
+    } catch (Exception e) {
+      return fallbackFromRaw(json);
     }
 
-    if (!missing.isEmpty()) {
-      throw new IllegalArgumentException("Missing required fields: " + String.join(", ", missing));
-    }
-    if (out.confidence < 0 || out.confidence > 1) {
-      throw new IllegalArgumentException("confidence out of range: " + out.confidence);
-    }
-    Set<String> allowedStances = new HashSet<>(List.of("support", "oppose", "undecided"));
-    if (!allowedStances.contains(out.stance)) {
-      throw new IllegalArgumentException("Invalid stance: " + out.stance);
-    }
+    fillDefaults(out);
     return out;
   }
 
@@ -167,5 +152,78 @@ public class AgentOutput {
       case "undecided" -> "Needs more evidence to decide.";
       default -> "No reason provided.";
     };
+  }
+
+  private static void fillDefaults(AgentOutput out) {
+    if (out == null) return;
+    if (out.proposedAmendments == null) out.proposedAmendments = new ArrayList<>();
+    if (out.reasons == null) out.reasons = new ArrayList<>();
+    if (out.targetsToLobby == null) out.targetsToLobby = new ArrayList<>();
+
+    out.proposedAmendments = sanitizeList(out.proposedAmendments);
+    out.reasons = sanitizeList(out.reasons);
+    out.targetsToLobby = sanitizeList(out.targetsToLobby);
+
+    if (out.voteIntent == null && out.stance != null && !out.stance.isBlank()) {
+      out.voteIntent = voteFromStance(out.stance);
+    }
+    if (out.stance == null || out.stance.isBlank()) {
+      out.stance = stanceFromVote(out.voteIntent);
+    }
+
+    Set<String> allowedStances = new HashSet<>(List.of("support", "oppose", "undecided"));
+    if (!allowedStances.contains(out.stance)) {
+      out.stance = stanceFromVote(out.voteIntent);
+    }
+    if (out.voteIntent == null) {
+      out.voteIntent = Vote.ABSTAIN;
+    }
+
+    if (out.confidence == null || out.confidence < 0 || out.confidence > 1) {
+      out.confidence = 0.5;
+    }
+    if (out.speech == null || out.speech.isBlank()) {
+      out.speech = "No speech provided.";
+    }
+    if (out.reasons.isEmpty()) {
+      out.reasons = new ArrayList<>(List.of(defaultReason(out.stance)));
+    }
+  }
+
+  private static String stanceFromVote(Vote vote) {
+    if (vote == null) return "undecided";
+    return switch (vote) {
+      case YES -> "support";
+      case NO -> "oppose";
+      case ABSTAIN -> "undecided";
+    };
+  }
+
+  private static Vote voteFromStance(String stance) {
+    if (stance == null) return Vote.ABSTAIN;
+    return switch (stance.trim().toLowerCase()) {
+      case "support" -> Vote.YES;
+      case "oppose" -> Vote.NO;
+      case "undecided" -> Vote.ABSTAIN;
+      default -> Vote.ABSTAIN;
+    };
+  }
+
+  private static AgentOutput fallbackFromRaw(String json) {
+    AgentOutput out = new AgentOutput();
+    out.stance = "undecided";
+    out.voteIntent = Vote.ABSTAIN;
+    out.confidence = 0.5;
+    out.speech = "No speech provided.";
+    out.reasons = new ArrayList<>(List.of(defaultReason(out.stance)));
+    out.proposedAmendments = new ArrayList<>();
+    out.targetsToLobby = new ArrayList<>();
+    if (json != null) {
+      String trimmed = json.strip();
+      if (!trimmed.isEmpty()) {
+        out.speech = trimmed.length() > 400 ? trimmed.substring(0, 400) + "..." : trimmed;
+      }
+    }
+    return out;
   }
 }

@@ -10,8 +10,8 @@ public class PoliticianAgent extends Agent {
   private final PoliticianProfile profile;
   private final LLMClient llm;
   private final PromptBuilder prompts;
-  private static final int NUM_PREDICT_DEFAULT = 220;
-  private static final int NUM_PREDICT_RETRY = 350;
+  private static final int NUM_PREDICT_DEFAULT = 500;
+  private static final int NUM_PREDICT_RETRY = 800;
 
   public PoliticianAgent(String id, String name, PoliticianProfile profile,
                          MemoryStore memory, LLMClient llm, PromptBuilder prompts) {

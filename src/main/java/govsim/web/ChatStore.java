@@ -6,15 +6,17 @@ import java.util.List;
 
 public class ChatStore {
   private final List<ChatMessage> messages = new ArrayList<>();
+  private final java.util.Map<String, String> voterNames = new java.util.HashMap<>();
+  private static final List<String> ANIMALS = List.of(
+      "Tiger", "Lion", "Panther", "Fox", "Wolf", "Hawk", "Otter", "Bear", "Eagle", "Cobra",
+      "Falcon", "Raven", "Leopard", "Jaguar", "Puma", "Dolphin", "Orca", "Mantis", "Koala", "Moose"
+  );
 
-  public synchronized void addMessage(String name, String message) {
-    String cleanName = sanitize(name, 32);
+  public synchronized void addMessage(String voterId, String message) {
     String cleanMessage = sanitize(message, 240);
     if (cleanMessage.isBlank()) return;
-    if (cleanName.isBlank()) {
-      cleanName = "Guest";
-    }
-    messages.add(new ChatMessage(cleanName, cleanMessage, System.currentTimeMillis()));
+    String displayName = displayNameFor(voterId);
+    messages.add(new ChatMessage(displayName, cleanMessage, System.currentTimeMillis()));
   }
 
   public synchronized ChatSnapshot snapshotFrom(int startIndex) {
@@ -30,6 +32,25 @@ public class ChatStore {
       return trimmed.substring(0, maxLen);
     }
     return trimmed;
+  }
+
+  private String displayNameFor(String voterId) {
+    String key = voterId == null ? "" : voterId.trim();
+    if (key.isBlank()) {
+      return "Anonymous Guest";
+    }
+    String existing = voterNames.get(key);
+    if (existing != null) return existing;
+    int index = Math.abs(key.hashCode()) % ANIMALS.size();
+    String base = "Anonymous " + ANIMALS.get(index);
+    String name = base;
+    int suffix = 2;
+    while (voterNames.containsValue(name)) {
+      name = base + " " + suffix;
+      suffix++;
+    }
+    voterNames.put(key, name);
+    return name;
   }
 
   public static class ChatMessage {

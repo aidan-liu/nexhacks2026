@@ -45,7 +45,8 @@ public class PrimaryFloorDebateNode implements Node {
         SimulationLogger.log("[Advocate] " + advocate.name() + ": " + advocateOutput.speech);
         String reason = advocateOutput.reasons.stream().findFirst().orElse("");
         if (!reason.isBlank()) {
-          SimulationLogger.log("[Advocate] Reason: " + reason);
+          String voteLabel = voteLabel(advocateOutput.voteIntent);
+          SimulationLogger.log("[Advocate] Reason (" + voteLabel + "): " + reason);
         }
         state.interactionLog.add("[Advocate] " + advocate.name() + " speaks: " + advocateOutput.stance);
         logLobbyTargets(state, advocate.name(), advocateOutput);
@@ -75,7 +76,8 @@ public class PrimaryFloorDebateNode implements Node {
       }
       String reason = out.reasons.stream().findFirst().orElse("");
       if (!reason.isBlank()) {
-        SimulationLogger.log("[Floor] Reason: " + reason);
+        String voteLabel = voteLabel(out.voteIntent);
+        SimulationLogger.log("[Floor] Reason (" + voteLabel + "): " + reason);
       }
       outputs.put(repId, out);
       summary = appendSummary(summary, rep.name(), out);
@@ -159,5 +161,14 @@ public class PrimaryFloorDebateNode implements Node {
     for (String target : out.targetsToLobby) {
       state.interactionLog.add("[Lobby] " + repName + " -> " + target);
     }
+  }
+
+  private String voteLabel(Vote vote) {
+    if (vote == null) return "abstain";
+    return switch (vote) {
+      case YES -> "pass";
+      case NO -> "fail";
+      case ABSTAIN -> "abstain";
+    };
   }
 }

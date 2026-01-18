@@ -40,7 +40,8 @@ public class CommitteeDeliberationNode implements Node {
       AgentOutput out = rep.act(ctx);
       String reason = out.reasons.stream().findFirst().orElse("");
       if (!reason.isBlank()) {
-        SimulationLogger.log("[Committee] Reason: " + reason);
+        String voteLabel = voteLabel(out.voteIntent);
+        SimulationLogger.log("[Committee] Reason (" + voteLabel + "): " + reason);
       }
       outputs.put(repId, out);
       String logLine = "[Committee] " + rep.name() + " speaks: " + out.stance + " (vote " + out.voteIntent + ")";
@@ -75,5 +76,14 @@ public class CommitteeDeliberationNode implements Node {
     for (String target : out.targetsToLobby) {
       state.interactionLog.add("[Lobby] " + repName + " -> " + target);
     }
+  }
+
+  private String voteLabel(govsim.domain.Vote vote) {
+    if (vote == null) return "abstain";
+    return switch (vote) {
+      case YES -> "pass";
+      case NO -> "fail";
+      case ABSTAIN -> "abstain";
+    };
   }
 }

@@ -1,0 +1,152 @@
+[
+  {
+    "id": "reliability-saidi-2023-major",
+    "source": "EIA Electric Power Annual 2024 (Table 11.1)",
+    "text": "Average outage duration (SAIDI) in the U.S. was 366.6 minutes per customer in 2023 when including major events."
+  },
+  {
+    "id": "reliability-saidi-2023-nomajor",
+    "source": "EIA Electric Power Annual 2024 (Table 11.1)",
+    "text": "Average outage duration (SAIDI) in the U.S. was 123.9 minutes per customer in 2023 when excluding major events."
+  },
+  {
+    "id": "reliability-saifi-2023-major",
+    "source": "EIA Electric Power Annual 2024 (Table 11.1)",
+    "text": "Average outage frequency (SAIFI) in the U.S. was 1.348 interruptions per customer in 2023 when including major events."
+  },
+  {
+    "id": "reliability-saifi-2023-nomajor",
+    "source": "EIA Electric Power Annual 2024 (Table 11.1)",
+    "text": "Average outage frequency (SAIFI) in the U.S. was 1.022 interruptions per customer in 2023 when excluding major events."
+  },
+  {
+    "id": "reliability-caidi-2023-major",
+    "source": "EIA Electric Power Annual 2024 (Table 11.1)",
+    "text": "Average restoration time (CAIDI) in the U.S. was 271.8 minutes in 2023 when including major events."
+  },
+  {
+    "id": "battery-storage-capacity-2023",
+    "source": "EIA Today in Energy 2024",
+    "text": "U.S. utility-scale battery storage power capacity reached 15.5 GW at the end of 2023."
+  },
+  {
+    "id": "battery-storage-additions-2024",
+    "source": "EIA Today in Energy 2024",
+    "text": "EIA reported utilities planned to add 14.3 GW of utility-scale battery storage capacity in 2024."
+  },
+  {
+    "id": "planned-capacity-additions-2024-total",
+    "source": "EIA 2024 Preliminary Monthly Electric Generator Inventory",
+    "text": "Utilities planned to add 62.8 GW of new utility-scale electric generating capacity in 2024."
+  },
+  {
+    "id": "planned-capacity-additions-2024-solar-share",
+    "source": "EIA 2024 Preliminary Monthly Electric Generator Inventory",
+    "text": "Solar was 58% of planned U.S. utility-scale capacity additions in 2024."
+  },
+  {
+    "id": "planned-capacity-additions-2024-storage-share",
+    "source": "EIA 2024 Preliminary Monthly Electric Generator Inventory",
+    "text": "Battery storage was 23% of planned U.S. utility-scale capacity additions in 2024."
+  },
+  {
+    "id": "generation-mix-renewables-2027",
+    "source": "EIA Short-Term Energy Outlook (Jan 13, 2026)",
+    "text": "EIA forecast renewable generation will rise to 28% of U.S. electricity generation by 2027."
+  },
+  {
+    "id": "electricity-demand-2027",
+    "source": "EIA Short-Term Energy Outlook (Jan 13, 2026)",
+    "text": "EIA forecast U.S. electricity consumption will reach 4,364 billion kWh in 2027."
+  },
+  {
+    "id": "noaa-disasters-cost-2024",
+    "source": "NOAA NCEI 2024 Billion-Dollar Disasters",
+    "text": "NOAA reported the U.S. had 27 billion-dollar weather/climate disasters in 2024 totaling about $182.7B in damages."
+  },
+  {
+    "id": "noaa-disasters-cost-2023",
+    "source": "NOAA NCEI 2023 Billion-Dollar Disasters",
+    "text": "NOAA reported the U.S. had 28 billion-dollar weather/climate disasters in 2023 totaling about $92.9B in damages."
+  },
+  {
+    "id": "grid-investment-gap-2033",
+    "source": "ASCE 2025 Infrastructure Report Card (Energy)",
+    "text": "ASCE estimated a $578B investment gap for U.S. energy infrastructure by 2033."
+  },
+  {
+    "id": "transmission-circuit-miles-2023",
+    "source": "NERC 2024 Long-Term Reliability Assessment",
+    "text": "NERC reported the U.S. had 527,698 circuit-miles of transmission lines above 100 kV in 2023."
+  },
+  {
+    "id": "transmission-double-by-2050",
+    "source": "NREL 2024 (DOE National Transmission Planning Study)",
+    "text": "NREL summarized DOE analysis finding the contiguous U.S. transmission system will need to at least double in size by 2050 to maintain reliability at lowest cost."
+  },
+  {
+    "id": "interconnection-queue-generation-2023",
+    "source": "LBNL Queued Up 2024 (end of 2023)",
+    "text": "Berkeley Lab reported over 1,570 GW of generation capacity was active in U.S. interconnection queues at the end of 2023."
+  },
+  {
+    "id": "interconnection-queue-storage-2023",
+    "source": "LBNL Queued Up 2024 (end of 2023)",
+    "text": "Berkeley Lab reported an estimated 1,030 GW of storage capacity was active in U.S. interconnection queues at the end of 2023."
+  },
+  {
+    "id": "interconnection-queue-generation-2024",
+    "source": "LBNL Queued Up 2025 (end of 2024)",
+    "text": "Berkeley Lab reported about 1,400 GW of generation capacity was active in U.S. interconnection queues at the end of 2024."
+  },
+  {
+    "id": "interconnection-queue-storage-2024",
+    "source": "LBNL Queued Up 2025 (end of 2024)",
+    "text": "Berkeley Lab reported about 890 GW of storage capacity was active in U.S. interconnection queues at the end of 2024."
+  },
+  {
+    "id": "interconnection-ia-not-operational-2024",
+    "source": "LBNL Queued Up 2025 (end of 2024)",
+    "text": "Berkeley Lab reported 408 GW of capacity had a draft or executed interconnection agreement but was not yet in commercial operation as of the end of 2024."
+  },
+  {
+    "id": "interconnection-time-in-queue-2018-2024",
+    "source": "LBNL Queued Up 2025 (through 2024)",
+    "text": "Berkeley Lab reported the median time from interconnection request to commercial operation exceeded 4 years for projects built in 2018–2024."
+  },
+  {
+    "id": "interconnection-success-rate-2000-2019",
+    "source": "LBNL Queued Up 2025 (through 2024)",
+    "text": "Berkeley Lab reported only 13% of capacity that submitted interconnection requests from 2000–2019 reached commercial operations by the end of 2024."
+  },
+  {
+    "id": "demand-response-wholesale-2024",
+    "source": "FERC 2025 Assessment of Demand Response & Advanced Metering",
+    "text": "FERC staff reported demand response participation across seven U.S. wholesale markets totaled 33,272 MW in 2024."
+  },
+  {
+    "id": "smart-meters-2022",
+    "source": "EIA Form 861 (reported for 2022; summarized by Duke Energy 2023)",
+    "text": "EIA data show about 119 million smart meters were installed in the U.S. in 2022 (about 72% of customers)."
+  },
+  {
+    "id": "public-ev-charging-ports-2024q2",
+    "source": "DOE AFDC / NREL (Q2 2024)",
+    "text": "DOE/NREL reported 188,096 public EV charging ports were available in the U.S. as of Q2 2024."
+  },
+  {
+    "id": "ev-sales-2024",
+    "source": "Cox Automotive 2024",
+    "text": "Cox Automotive reported U.S. EV sales hit about 1.301 million units in 2024."
+  },
+  {
+    "id": "grid-resilience-grip-2023",
+    "source": "DOE Grid Deployment Office (Nov 2023)",
+    "text": "DOE announced selections for 105 GRIP projects totaling $7.6B to modernize and expand the U.S. power grid."
+  },
+  {
+    "id": "energy-efficiency-investment-2023",
+    "source": "ACEEE 2025",
+    "text": "ACEEE reported U.S. utilities invested a record $8.8B in customer energy efficiency programs in 2023."
+  }
+]

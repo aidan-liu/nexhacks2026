@@ -50,7 +50,7 @@ public class OllamaClient implements LLMClient {
     HttpRequest request = HttpRequest.newBuilder()
         .uri(URI.create(baseUrl + "/api/generate"))
         .header("Content-Type", "application/json")
-        .timeout(Duration.ofSeconds(120))
+        .timeout(Duration.ofSeconds(300))
         .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(body)))
         .build();
 

@@ -11,16 +11,20 @@ public class SimulationConfig {
   private final String model;
   private final int numPredict;
   private final int serverPort;
+  private final int maxRevisions;
+  private final String factsPath;
   private final String billPath;
   private final String agenciesPath;
   private final String repsPath;
 
-  public SimulationConfig(String ollamaUrl, String model, int numPredict, int serverPort,
+  public SimulationConfig(String ollamaUrl, String model, int numPredict, int serverPort, int maxRevisions, String factsPath,
                           String billPath, String agenciesPath, String repsPath) {
     this.ollamaUrl = ollamaUrl;
     this.model = model;
     this.numPredict = numPredict;
     this.serverPort = serverPort;
+    this.maxRevisions = maxRevisions;
+    this.factsPath = factsPath;
     this.billPath = billPath;
     this.agenciesPath = agenciesPath;
     this.repsPath = repsPath;
@@ -30,6 +34,8 @@ public class SimulationConfig {
   public String model() { return model; }
   public int numPredict() { return numPredict; }
   public int serverPort() { return serverPort; }
+  public int maxRevisions() { return maxRevisions; }
+  public String factsPath() { return factsPath; }
   public String billPath() { return billPath; }
   public String agenciesPath() { return agenciesPath; }
   public String repsPath() { return repsPath; }
@@ -45,13 +51,16 @@ public class SimulationConfig {
 
     String ollamaUrl = getValue(props, "ollama.url", "SIM_OLLAMA_URL", "http://localhost:11434");
     String model = getValue(props, "model", "SIM_MODEL", "gemma2:2b");
-    int numPredict = getIntValue(props, "num_predict", "SIM_NUM_PREDICT", 200);
+    int numPredict = getIntValue(props, "num_predict", "SIM_NUM_PREDICT", 600);
     int serverPort = getIntValue(props, "server.port", "SIM_SERVER_PORT", 8080);
+    int maxRevisions = getIntValue(props, "max_revisions", "SIM_MAX_REVISIONS", 1);
+    String factsPath = getValue(props, "facts.path", "SIM_FACTS_PATH", "config/facts.json");
     String billPath = getValue(props, "bill.path", "SIM_BILL_PATH", "config/bill.txt");
     String agenciesPath = getValue(props, "agencies.path", "SIM_AGENCIES_PATH", "config/agencies.json");
     String repsPath = getValue(props, "reps.path", "SIM_REPS_PATH", "config/representatives.json");
 
-    return new SimulationConfig(ollamaUrl, model, numPredict, serverPort, billPath, agenciesPath, repsPath);
+    return new SimulationConfig(ollamaUrl, model, numPredict, serverPort, maxRevisions, factsPath,
+        billPath, agenciesPath, repsPath);
   }
 
   private static String getValue(Properties props, String key, String envKey, String defaultValue) {
