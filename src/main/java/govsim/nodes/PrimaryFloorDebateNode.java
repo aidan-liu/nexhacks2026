@@ -42,6 +42,10 @@ public class PrimaryFloorDebateNode implements Node {
         AgentContext advocateCtx = new AgentContext(state.bill, state.billOnePager, summary, Map.of(), state.vars);
         advocateOutput = advocate.advocate(advocateCtx);
         System.out.println("[Advocate] " + advocate.name() + ": " + advocateOutput.speech);
+        String reason = advocateOutput.reasons.stream().findFirst().orElse("");
+        if (!reason.isBlank()) {
+          System.out.println("[Advocate] Reason: " + reason);
+        }
         state.interactionLog.add("[Advocate] " + advocate.name() + " speaks: " + advocateOutput.stance);
         logLobbyTargets(state, advocate.name(), advocateOutput);
         summary = appendSummary(summary, advocate.name(), advocateOutput);
@@ -67,6 +71,10 @@ public class PrimaryFloorDebateNode implements Node {
         out = advocateOutput;
       } else {
         out = rep.act(ctx);
+      }
+      String reason = out.reasons.stream().findFirst().orElse("");
+      if (!reason.isBlank()) {
+        System.out.println("[Floor] Reason: " + reason);
       }
       outputs.put(repId, out);
       summary = appendSummary(summary, rep.name(), out);

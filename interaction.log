@@ -1,27 +1,30 @@
 [Committee] Lisa Murkowski speaks: support (vote YES)
-[Lobby] Lisa Murkowski -> Energy sector
-[Lobby] Lisa Murkowski -> Utilities
+[Lobby] Lisa Murkowski -> DOE
 [Committee] Ed Markey speaks: support (vote YES)
-[Lobby] Ed Markey -> Environmental Groups
-[Lobby] Ed Markey -> Utilities
+[Lobby] Ed Markey -> Clean Energy Alliance
+[Lobby] Ed Markey -> National Electric Grid modernization organizations
 [Committee] Cory Booker speaks: support (vote YES)
-[Lobby] Cory Booker -> Renewable Energy Industries
-[Lobby] Cory Booker -> Infrastructure Construction
+[Lobby] Cory Booker -> Energy industry leaders
+[Lobby] Cory Booker -> Infrastructure development organizations
 [Advocate] Cory Booker speaks: support
-[Lobby] Cory Booker -> Energy and Infrastructure Committee
+[Lobby] Cory Booker -> Republicans in Congress
 [Floor] Hakeem Jeffries speaks: support (vote YES)
-[Lobby] Hakeem Jeffries -> Energy Sector
-[Lobby] Hakeem Jeffries -> Environmental Groups
+[Lobby] Hakeem Jeffries -> Energy sector
+[Lobby] Hakeem Jeffries -> National Infrastructure
 [Floor] Cory Booker speaks: support (vote YES)
-[Lobby] Cory Booker -> Energy and Infrastructure Committee
-[Floor] Katie Porter speaks: support (vote YES)
-[Lobby] Katie Porter -> Office of the White House
+[Lobby] Cory Booker -> Republicans in Congress
+[Floor] Katie Porter speaks: oppose (vote ABSTAIN)
+[Lobby] Katie Porter -> Utility industry representatives
+[Lobby] Katie Porter -> Health insurance companies
 [Floor] Dan Crenshaw speaks: support (vote YES)
-[Lobby] Dan Crenshaw -> Murkowski
+[Lobby] Dan Crenshaw -> Energy companies
+[Lobby] Dan Crenshaw -> Environmental organizations
 [Floor] Rand Paul speaks: support (vote YES)
-[Lobby] Rand Paul -> Murkowski
-[Lobby] Rand Paul -> Booker
+[Lobby] Rand Paul -> Department of Energy
+[Lobby] Rand Paul -> Senate Budget Committee
 [Floor] Raphael Warnock speaks: support (vote YES)
-[Lobby] Raphael Warnock -> Senators Murkowski, Markey, and Booker
+[Lobby] Raphael Warnock -> American Energy Sector
+[Lobby] Raphael Warnock -> Environmental Groups
 [Floor] Elise Stefanik speaks: support (vote YES)
-[Lobby] Elise Stefanik -> Energy Infrastructure Agency
+[Lobby] Elise Stefanik -> Katie Porter
+[Lobby] Elise Stefanik -> Dan Crenshaw

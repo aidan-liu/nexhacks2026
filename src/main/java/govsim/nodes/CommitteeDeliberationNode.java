@@ -37,6 +37,10 @@ public class CommitteeDeliberationNode implements Node {
       AgentContext ctx = new AgentContext(state.bill, state.billOnePager, state.floorSummary,
           Map.of(), state.vars);
       AgentOutput out = rep.act(ctx);
+      String reason = out.reasons.stream().findFirst().orElse("");
+      if (!reason.isBlank()) {
+        System.out.println("[Committee] Reason: " + reason);
+      }
       outputs.put(repId, out);
       String logLine = "[Committee] " + rep.name() + " speaks: " + out.stance + " (vote " + out.voteIntent + ")";
       state.interactionLog.add(logLine);

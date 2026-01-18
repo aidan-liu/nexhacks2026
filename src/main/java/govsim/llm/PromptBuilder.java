@@ -34,7 +34,7 @@ Return STRICT JSON with keys:
 speech (string), proposedAmendments (array of strings), stance ("support"|"oppose"|"undecided"),
 voteIntent ("YES"|"NO"|"ABSTAIN"), confidence (number 0..1), reasons (array of strings),
 targetsToLobby (array of strings). Arrays must contain only strings, not objects.
-Keep speech under 80 words. reasons max 2 items. proposedAmendments max 2 items. targetsToLobby max 2 items.
+Keep speech under 80 words. reasons must have 1-2 short items. proposedAmendments max 2 items. targetsToLobby max 2 items.
 No extra keys. No markdown.
 """.formatted(agent.name(), profile.party, profile.ideology, profile.redLines, profile.petIssues, profile.speakingStyle,
               ctx.billOnePager, ctx.floorSummary, memory);
@@ -66,7 +66,7 @@ Return STRICT JSON with keys:
 speech (string), proposedAmendments (array of strings), stance ("support"|"oppose"|"undecided"),
 voteIntent ("YES"|"NO"|"ABSTAIN"), confidence (number 0..1), reasons (array of strings),
 targetsToLobby (array of strings). Arrays must contain only strings, not objects.
-Keep speech under 80 words. reasons max 2 items. proposedAmendments max 2 items. targetsToLobby max 2 items.
+Keep speech under 80 words. reasons must have 1-2 short items. proposedAmendments max 2 items. targetsToLobby max 2 items.
 No extra keys. No markdown.
 """.formatted(agent.name(), profile.party, profile.ideology, profile.redLines, profile.petIssues, profile.speakingStyle,
         ctx.billOnePager, ctx.floorSummary, memory);

@@ -1,5 +1,6 @@
 package govsim.agents;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,7 +25,16 @@ public class AgentOutput {
   public static AgentOutput fromJson(String json) throws Exception {
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true);
-    JsonNode root = mapper.readTree(json);
+    JsonNode root;
+    try {
+      root = mapper.readTree(json);
+    } catch (JsonProcessingException e) {
+      String extracted = extractJsonObject(json);
+      if (extracted == null) {
+        throw e;
+      }
+      root = mapper.readTree(extracted);
+    }
     if (root == null || !root.isObject()) {
       throw new IllegalArgumentException("Expected JSON object for AgentOutput");
     }
@@ -46,6 +56,14 @@ public class AgentOutput {
     if (out.reasons == null) out.reasons = new ArrayList<>();
     if (out.proposedAmendments == null) out.proposedAmendments = new ArrayList<>();
     if (out.targetsToLobby == null) out.targetsToLobby = new ArrayList<>();
+
+    out.reasons = sanitizeList(out.reasons);
+    out.proposedAmendments = sanitizeList(out.proposedAmendments);
+    out.targetsToLobby = sanitizeList(out.targetsToLobby);
+
+    if (out.reasons.isEmpty()) {
+      out.reasons = new ArrayList<>(List.of(defaultReason(out.stance)));
+    }
 
     if (!missing.isEmpty()) {
       throw new IllegalArgumentException("Missing required fields: " + String.join(", ", missing));
@@ -69,12 +87,12 @@ public class AgentOutput {
     }
     if (node.isArray()) {
       for (JsonNode item : node) {
-        array.add(extractString(item));
+        addIfNotBlank(array, extractString(item));
       }
       root.set(field, array);
       return;
     }
-    array.add(extractString(node));
+    addIfNotBlank(array, extractString(node));
     root.set(field, array);
   }
 
@@ -115,5 +133,39 @@ public class AgentOutput {
       }
     }
     return node.toString();
+  }
+
+  private static String extractJsonObject(String json) {
+    if (json == null) return null;
+    int start = json.indexOf('{');
+    int end = json.lastIndexOf('}');
+    if (start < 0 || end <= start) return null;
+    return json.substring(start, end + 1);
+  }
+
+  private static void addIfNotBlank(ArrayNode array, String value) {
+    if (value == null) return;
+    String trimmed = value.trim();
+    if (!trimmed.isEmpty()) array.add(trimmed);
+  }
+
+  private static List<String> sanitizeList(List<String> items) {
+    List<String> cleaned = new ArrayList<>();
+    for (String item : items) {
+      if (item == null) continue;
+      String trimmed = item.trim();
+      if (!trimmed.isEmpty()) cleaned.add(trimmed);
+    }
+    return cleaned;
+  }
+
+  private static String defaultReason(String stance) {
+    if (stance == null) return "No reason provided.";
+    return switch (stance) {
+      case "support" -> "Believes the bill advances key priorities.";
+      case "oppose" -> "Believes the bill conflicts with key priorities.";
+      case "undecided" -> "Needs more evidence to decide.";
+      default -> "No reason provided.";
+    };
   }
 }
