@@ -21,6 +21,10 @@ public class PoliticianAgent extends Agent {
     this.prompts = prompts;
   }
 
+  public PoliticianProfile profile() {
+    return profile;
+  }
+
   @Override
   public AgentOutput act(AgentContext ctx) throws Exception {
     return runTurn(ctx, false);

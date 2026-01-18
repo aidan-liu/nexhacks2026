@@ -22,9 +22,12 @@ public class GraphRunner {
     int revisionCount = 0;
     for (int i = 0; i < nodes.size(); i++) {
       Node n = nodes.get(i);
+      String stageName = prettyStageName(n.name()) + " Stage";
+      updateStage(state, stageName, true);
       SimulationLogger.log("==> Running: " + n.name());
       n.run(state);
       SimulationLogger.log("==> Done: " + n.name());
+      updateStage(state, stageName, false);
 
       Object rerunFrom = state.vars.remove("rerunFromNode");
       if (rerunFrom != null) {
@@ -43,5 +46,20 @@ public class GraphRunner {
         i = targetIndex - 1;
       }
     }
+    updateStage(state, "Complete", false);
+  }
+
+  private void updateStage(SimulationState state, String stage, boolean running) {
+    Object storeObj = state.vars.get("statusStore");
+    if (storeObj instanceof govsim.web.StatusStore store) {
+      store.setStage(stage, running);
+    }
+  }
+
+  private String prettyStageName(String raw) {
+    if (raw == null || raw.isBlank()) return "Stage";
+    String spaced = raw.replaceAll("([a-z])([A-Z])", "$1 $2");
+    spaced = spaced.replaceAll("([A-Z])([A-Z][a-z])", "$1 $2");
+    return spaced.trim();
   }
 }

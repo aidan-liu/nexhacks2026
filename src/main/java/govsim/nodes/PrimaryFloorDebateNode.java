@@ -40,14 +40,21 @@ public class PrimaryFloorDebateNode implements Node {
       var advocate = registry.repById(advocateId);
       if (advocate != null) {
         SimulationLogger.log("[Advocate] " + advocate.name() + " is advocating for the bill...");
-        AgentContext advocateCtx = new AgentContext(state.bill, state.billOnePager, summary, Map.of(), state.vars);
+        Map<String, Object> runtime = new java.util.HashMap<>(state.vars);
+        String debateTarget = pickDebateTarget(runtime, rng);
+        if (debateTarget != null) {
+          runtime.put("debateTarget", debateTarget);
+        }
+        AgentContext advocateCtx = new AgentContext(state.bill, state.billOnePager, summary, Map.of(), runtime);
         advocateOutput = advocate.advocate(advocateCtx);
+        updateSpeaker(state, advocate.id(), advocate.name(), advocateOutput.speech);
         SimulationLogger.log("[Advocate] " + advocate.name() + ": " + advocateOutput.speech);
         String reason = advocateOutput.reasons.stream().findFirst().orElse("");
         if (!reason.isBlank()) {
           String voteLabel = voteLabel(advocateOutput.voteIntent);
           SimulationLogger.log("[Advocate] Reason (" + voteLabel + "): " + reason);
         }
+        addPeerReasoning(state, "Advocate", advocate.name(), advocateOutput);
         state.interactionLog.add("[Advocate] " + advocate.name() + " speaks: " + advocateOutput.stance);
         logLobbyTargets(state, advocate.name(), advocateOutput);
         summary = appendSummary(summary, advocate.name(), advocateOutput);
@@ -67,19 +74,26 @@ public class PrimaryFloorDebateNode implements Node {
       var rep = registry.repById(repId);
       if (rep == null) continue;
       SimulationLogger.log("[Floor] " + agency.name() + " -> " + rep.name() + " is taking the floor...");
-      AgentContext ctx = new AgentContext(state.bill, state.billOnePager, summary, Map.of(), state.vars);
+      Map<String, Object> runtime = new java.util.HashMap<>(state.vars);
+      String debateTarget = pickDebateTarget(runtime, rng);
+      if (debateTarget != null) {
+        runtime.put("debateTarget", debateTarget);
+      }
+      AgentContext ctx = new AgentContext(state.bill, state.billOnePager, summary, Map.of(), runtime);
       AgentOutput out;
       if (repId.equals(advocateId) && advocateOutput != null) {
         out = advocateOutput;
       } else {
         out = rep.act(ctx);
       }
+      updateSpeaker(state, rep.id(), rep.name(), out.speech);
       String reason = out.reasons.stream().findFirst().orElse("");
       if (!reason.isBlank()) {
         String voteLabel = voteLabel(out.voteIntent);
         SimulationLogger.log("[Floor] Reason (" + voteLabel + "): " + reason);
       }
       outputs.put(repId, out);
+      addPeerReasoning(state, agency.name(), rep.name(), out);
       summary = appendSummary(summary, rep.name(), out);
       String logLine = "[Floor] " + rep.name() + " speaks: " + out.stance + " (vote " + out.voteIntent + ")";
       state.interactionLog.add(logLine);
@@ -170,5 +184,44 @@ public class PrimaryFloorDebateNode implements Node {
       case NO -> "fail";
       case ABSTAIN -> "abstain";
     };
+  }
+
+  @SuppressWarnings("unchecked")
+  private void addPeerReasoning(SimulationState state, String agencyName, String repName, AgentOutput out) {
+    Object existing = state.vars.get("peerReasoningLog");
+    List<String> log;
+    if (existing instanceof List<?>) {
+      log = (List<String>) existing;
+    } else {
+      log = new ArrayList<>();
+      state.vars.put("peerReasoningLog", log);
+    }
+    String reasons = out.reasons == null ? "" : String.join(" | ", out.reasons);
+    String line = repName + " (" + agencyName + "): " + out.stance + " (vote " + out.voteIntent + ")"
+        + (reasons.isBlank() ? "" : " - " + reasons);
+    log.add(line);
+    if (log.size() > 30) {
+      log.remove(0);
+    }
+  }
+
+  private String pickDebateTarget(Map<String, Object> runtime, Random rng) {
+    Object existing = runtime.get("peerReasoningLog");
+    if (!(existing instanceof List<?> list) || list.isEmpty()) {
+      return null;
+    }
+    int idx = rng.nextInt(list.size());
+    return list.get(idx).toString();
+  }
+
+  private void updateSpeaker(SimulationState state, String id, String name, String speech) {
+    Object storeObj = state.vars.get("statusStore");
+    if (storeObj instanceof govsim.web.StatusStore store) {
+      String text = speech == null ? "" : speech.trim();
+      if (text.length() > 180) {
+        text = text.substring(0, 180) + "...";
+      }
+      store.setSpeaker(id, name, text);
+    }
   }
 }

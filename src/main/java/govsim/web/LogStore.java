@@ -18,6 +18,11 @@ public class LogStore {
     return new LogSnapshot(Collections.unmodifiableList(slice), lines.size());
   }
 
+  public synchronized String lastLine() {
+    if (lines.isEmpty()) return "";
+    return lines.get(lines.size() - 1);
+  }
+
   public static class LogSnapshot {
     public final List<String> lines;
     public final int nextIndex;

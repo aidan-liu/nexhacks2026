@@ -9,6 +9,7 @@ import govsim.core.SimulationLogger;
 import govsim.core.SimulationState;
 import govsim.llm.LLMClient;
 import govsim.llm.LLMRequestOptions;
+import govsim.web.BillStore;
 
 import java.util.List;
 import java.util.Map;
@@ -76,6 +77,11 @@ No extra keys. No markdown.
     state.bill.setEstimatedCost(estimatedCost);
     state.bill.setAttributes(attributes);
     state.billOnePager = onePager;
+    Object storeObj = state.vars.get("billStore");
+    if (storeObj instanceof BillStore store) {
+      store.setOriginalText(state.bill.rawText());
+      store.setOnePager(onePager);
+    }
     SimulationLogger.log("[ParseBill] Analysis complete.");
   }
 }

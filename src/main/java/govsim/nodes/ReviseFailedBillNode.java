@@ -11,6 +11,7 @@ import govsim.core.SimulationState;
 import govsim.domain.Agency;
 import govsim.llm.LLMClient;
 import govsim.llm.LLMRequestOptions;
+import govsim.web.BillStore;
 
 import java.util.List;
 import java.util.Map;
@@ -95,6 +96,10 @@ No extra keys. No markdown.
     state.vars.put("revisedBillText", revisedText);
     state.vars.put("revisedBillSummary", summary);
     state.vars.put("revisedBillChanges", keyChanges);
+    Object storeObj = state.vars.get("billStore");
+    if (storeObj instanceof BillStore store) {
+      store.setRevised(revisedText, summary, keyChanges);
+    }
 
     SimulationLogger.log("[Revise] Drafted revisions by " + agency.name() + ".");
     if (!summary.isBlank()) {
@@ -105,6 +110,9 @@ No extra keys. No markdown.
     }
 
     state.billOnePager = buildRevisedOnePager(summary, keyChanges, revisedText);
+    if (storeObj instanceof BillStore store) {
+      store.setOnePager(state.billOnePager);
+    }
     state.floorSummary = "";
     state.lastTurnOutputs.clear();
     state.voteResult = null;

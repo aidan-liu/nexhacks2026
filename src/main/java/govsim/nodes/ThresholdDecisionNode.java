@@ -16,7 +16,7 @@ public class ThresholdDecisionNode implements Node {
   public void run(SimulationState state) {
     VoteResult result = state.voteResult;
     if (result == null) {
-      state.vars.put("finalOutcome", "UNKNOWN");
+      updateOutcome(state, "UNKNOWN");
       return;
     }
 
@@ -31,13 +31,13 @@ public class ThresholdDecisionNode implements Node {
       outcome = "KILLED";
     }
 
-    state.vars.put("finalOutcome", outcome);
+    updateOutcome(state, outcome);
     SimulationLogger.log("[Decision] Outcome: " + outcome + " (yes=" + yes + ", no=" + no +
         ", abstain=" + result.abstainCount() + ")");
 
     if (outcome.equals("PASS") || outcome.equals("POPULAR_VOTE_REQUIRED")) {
       String finalOutcome = runPopularVote(state);
-      state.vars.put("finalOutcome", finalOutcome);
+      updateOutcome(state, finalOutcome);
       SimulationLogger.log("[Decision] Final outcome after popular vote: " + finalOutcome);
     }
   }
@@ -77,5 +77,13 @@ public class ThresholdDecisionNode implements Node {
     boolean passed = snap.yes > snap.no;
     SimulationLogger.log("[PopularVote] Results: YES=" + snap.yes + ", NO=" + snap.no + ".");
     return passed ? "PASS" : "KILLED";
+  }
+
+  private void updateOutcome(SimulationState state, String outcome) {
+    state.vars.put("finalOutcome", outcome);
+    Object storeObj = state.vars.get("statusStore");
+    if (storeObj instanceof govsim.web.StatusStore store) {
+      store.setFinalOutcome(outcome);
+    }
   }
 }

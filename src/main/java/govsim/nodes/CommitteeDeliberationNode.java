@@ -8,8 +8,11 @@ import govsim.core.SimulationLogger;
 import govsim.core.SimulationState;
 import govsim.domain.Agency;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 public class CommitteeDeliberationNode implements Node {
   private final AgentRegistry registry;
@@ -32,18 +35,26 @@ public class CommitteeDeliberationNode implements Node {
     }
 
     Map<String, AgentOutput> outputs = new LinkedHashMap<>();
+    Random rng = new Random(seedFromState(state));
     for (String repId : agency.representativeIds()) {
       var rep = registry.repById(repId);
       SimulationLogger.log("[Committee] " + agency.name() + " -> " + rep.name());
+      Map<String, Object> runtime = new java.util.HashMap<>(state.vars);
+      String debateTarget = pickDebateTarget(runtime, rng);
+      if (debateTarget != null) {
+        runtime.put("debateTarget", debateTarget);
+      }
       AgentContext ctx = new AgentContext(state.bill, state.billOnePager, state.floorSummary,
-          Map.of(), state.vars);
+          Map.of(), runtime);
       AgentOutput out = rep.act(ctx);
+      updateSpeaker(state, rep.id(), rep.name(), out.speech);
       String reason = out.reasons.stream().findFirst().orElse("");
       if (!reason.isBlank()) {
         String voteLabel = voteLabel(out.voteIntent);
         SimulationLogger.log("[Committee] Reason (" + voteLabel + "): " + reason);
       }
       outputs.put(repId, out);
+      addPeerReasoning(state, agency.name(), rep.name(), out);
       String logLine = "[Committee] " + rep.name() + " speaks: " + out.stance + " (vote " + out.voteIntent + ")";
       state.interactionLog.add(logLine);
       logLobbyTargets(state, rep.name(), out);
@@ -85,5 +96,49 @@ public class CommitteeDeliberationNode implements Node {
       case NO -> "fail";
       case ABSTAIN -> "abstain";
     };
+  }
+
+  private void updateSpeaker(SimulationState state, String id, String name, String speech) {
+    Object storeObj = state.vars.get("statusStore");
+    if (storeObj instanceof govsim.web.StatusStore store) {
+      String text = speech == null ? "" : speech.trim();
+      if (text.length() > 180) {
+        text = text.substring(0, 180) + "...";
+      }
+      store.setSpeaker(id, name, text);
+    }
+  }
+
+  private long seedFromState(SimulationState state) {
+    if (state.bill == null || state.bill.id() == null) return 0L;
+    return state.bill.id().hashCode();
+  }
+
+  private String pickDebateTarget(Map<String, Object> runtime, Random rng) {
+    Object existing = runtime.get("peerReasoningLog");
+    if (!(existing instanceof List<?> list) || list.isEmpty()) {
+      return null;
+    }
+    int idx = rng.nextInt(list.size());
+    return list.get(idx).toString();
+  }
+
+  @SuppressWarnings("unchecked")
+  private void addPeerReasoning(SimulationState state, String agencyName, String repName, AgentOutput out) {
+    Object existing = state.vars.get("peerReasoningLog");
+    List<String> log;
+    if (existing instanceof List<?>) {
+      log = (List<String>) existing;
+    } else {
+      log = new ArrayList<>();
+      state.vars.put("peerReasoningLog", log);
+    }
+    String reasons = out.reasons == null ? "" : String.join(" | ", out.reasons);
+    String line = repName + " (" + agencyName + "): " + out.stance + " (vote " + out.voteIntent + ")"
+        + (reasons.isBlank() ? "" : " - " + reasons);
+    log.add(line);
+    if (log.size() > 30) {
+      log.remove(0);
+    }
   }
 }

@@ -34,6 +34,12 @@ YOUR MEMORY:
 FACTS PACK (use at least one statistic if relevant, cite the source):
 %s
 
+PEER REASONING (recent statements by other representatives):
+%s
+
+DEBATE TARGET (if present, respond directly with a rebuttal or support):
+%s
+
 Return STRICT JSON with keys:
 speech (string), proposedAmendments (array of strings), stance ("support"|"oppose"|"undecided"),
 voteIntent ("YES"|"NO"|"ABSTAIN"), confidence (number 0..1), reasons (array of strings),
@@ -42,9 +48,10 @@ Keep speech 120-180 words. reasons must have 2-4 items, each 1-2 sentences.
 proposedAmendments max 2 items. targetsToLobby max 2 items.
 Include at least one concrete statistic in the speech or reasons if possible.
 When you use a fact, explicitly mention its source and add 1-2 sentences of context or impact.
+When relevant, reference other representatives by name and their stated reasons.
 No extra keys. No markdown.
 """.formatted(agent.name(), profile.party, profile.ideology, profile.redLines, profile.petIssues, profile.speakingStyle,
-              ctx.billOnePager, ctx.floorSummary, memory, factsPack);
+              ctx.billOnePager, ctx.floorSummary, memory, factsPack, peerReasoning(ctx), debateTarget(ctx));
   }
 
   public String buildAdvocatePrompt(PoliticianAgent agent, PoliticianProfile profile,
@@ -73,6 +80,12 @@ YOUR MEMORY:
 FACTS PACK (use at least one statistic, cite the source):
 %s
 
+PEER REASONING (recent statements by other representatives):
+%s
+
+DEBATE TARGET (if present, respond directly with a rebuttal or support):
+%s
+
 Return STRICT JSON with keys:
 speech (string), proposedAmendments (array of strings), stance ("support"|"oppose"|"undecided"),
 voteIntent ("YES"|"NO"|"ABSTAIN"), confidence (number 0..1), reasons (array of strings),
@@ -81,9 +94,10 @@ Keep speech 120-180 words. reasons must have 2-4 items, each 1-2 sentences.
 proposedAmendments max 2 items. targetsToLobby max 2 items.
 Include at least one concrete statistic in the speech or reasons if possible.
 When you use a fact, explicitly mention its source and add 1-2 sentences of context or impact.
+When relevant, reference other representatives by name and their stated reasons.
 No extra keys. No markdown.
 """.formatted(agent.name(), profile.party, profile.ideology, profile.redLines, profile.petIssues, profile.speakingStyle,
-        ctx.billOnePager, ctx.floorSummary, memory, factsPack);
+        ctx.billOnePager, ctx.floorSummary, memory, factsPack, peerReasoning(ctx), debateTarget(ctx));
   }
 
   public String buildJudgePrompt(AgentContext ctx, Collection<Agency> agencies) {
@@ -112,5 +126,25 @@ No extra keys. Use selectedAgencyId exactly as listed above.
     if (facts == null) return "(no facts provided)";
     String text = facts.toString().trim();
     return text.isBlank() ? "(no facts provided)" : text;
+  }
+
+  private String peerReasoning(AgentContext ctx) {
+    Object log = ctx.runtime.get("peerReasoningLog");
+    if (log == null) return "(none)";
+    if (log instanceof java.util.List<?> list) {
+      int start = Math.max(0, list.size() - 8);
+      return list.subList(start, list.size()).stream()
+          .map(Object::toString)
+          .collect(java.util.stream.Collectors.joining("\n"));
+    }
+    String text = log.toString().trim();
+    return text.isBlank() ? "(none)" : text;
+  }
+
+  private String debateTarget(AgentContext ctx) {
+    Object target = ctx.runtime.get("debateTarget");
+    if (target == null) return "(none)";
+    String text = target.toString().trim();
+    return text.isBlank() ? "(none)" : text;
   }
 }
