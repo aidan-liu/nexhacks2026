@@ -667,7 +667,21 @@ public class PollingServer {
           </details>
         </div>
         <div class="bill-section">
-          <div class="badge">Revised Bill</div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <div class="badge">Revised Bill</div>
+            <a href="http://localhost:3000/contract" target="_blank"
+               style="display:inline-flex; align-items:center; gap:4px; padding:4px 8px; border-radius:6px;
+                      background:#eef3f8; color:#283248; text-decoration:none;
+                      font-size:11px; border:1px solid #d6dee9;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"
+                   viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                <polyline points="14,2 14,8 20,8"/>
+              </svg>
+              View Contract
+            </a>
+          </div>
           <div id="revisedSummary" class="bill-text" style="margin-top:6px;"></div>
           <div id="revisedChanges" class="bill-text" style="margin-top:6px;"></div>
           <div id="revisedText" class="bill-text" style="margin-top:6px;"></div>
