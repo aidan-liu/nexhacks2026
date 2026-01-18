@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GovSim Parliament</title>
+  <link rel="stylesheet" href="/static/css/parliament.css" />
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+  <div id="app">
+    <header id="header">
+      <h1>GovSim Parliament</h1>
+      <div class="header-controls">
+        <button id="transcriptToggle" class="toggle-btn">Hide Transcription</button>
+        <span id="statusBadge" class="badge">Connecting...</span>
+      </div>
+    </header>
+
+    <main id="main">
+      <div id="scene-container"></div>
+
+      <aside id="sidebar">
+        <section id="vote-panel" class="panel">
+          <h3>Popular Vote</h3>
+          <div class="vote-buttons">
+            <button id="yesBtn" class="vote-btn yes" disabled>Vote YES</button>
+            <button id="noBtn" class="vote-btn no" disabled>Vote NO</button>
+          </div>
+          <div id="voteStats" class="stats">Waiting...</div>
+          <div id="voteTally" class="tally">
+            <div class="tally-bar">
+              <div id="yesBar" class="yes-fill"></div>
+              <div id="noBar" class="no-fill"></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="chat-panel" class="panel">
+          <h3>Public Comments</h3>
+          <div id="chatLog"></div>
+          <div class="chat-input">
+            <input id="chatName" type="text" placeholder="Name" />
+            <input id="chatMessage" type="text" placeholder="Comment" />
+            <button id="chatSend">Send</button>
+          </div>
+        </section>
+
+        <section id="log-panel" class="panel">
+          <h3>Console</h3>
+          <div id="log"></div>
+        </section>
+      </aside>
+    </main>
+
+    <div id="tooltip" class="tooltip hidden"></div>
+    <div id="speech-bubble" class="speech-bubble hidden">
+      <div class="bubble-content"></div>
+      <div class="bubble-arrow"></div>
+    </div>
+  </div>
+
+  <script type="module" src="/static/js/main.js"></script>
+</body>
+</html>

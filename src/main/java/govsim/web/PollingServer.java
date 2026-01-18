@@ -5,10 +5,12 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +31,8 @@ public class PollingServer {
     this.server = HttpServer.create(new InetSocketAddress(port), 0);
     this.server.setExecutor(Executors.newCachedThreadPool());
     this.server.createContext("/", this::handleIndex);
+    this.server.createContext("/static", this::handleStatic);
+    this.server.createContext("/representatives", this::handleRepresentatives);
     this.server.createContext("/log", this::handleLog);
     this.server.createContext("/status", this::handleStatus);
     this.server.createContext("/vote", this::handleVote);
@@ -52,11 +56,68 @@ public class PollingServer {
       exchange.sendResponseHeaders(405, -1);
       return;
     }
+    // Redirect to the static frontend
     ensureVoterCookie(exchange);
-    String html = buildIndexHtml();
-    byte[] body = html.getBytes(StandardCharsets.UTF_8);
-    exchange.getResponseHeaders().add("Content-Type", "text/html; charset=utf-8");
+    exchange.getResponseHeaders().add("Location", "/static/index.html");
+    exchange.sendResponseHeaders(302, -1);
+  }
+
+  private void handleStatic(HttpExchange exchange) throws IOException {
+    if (!"GET".equalsIgnoreCase(exchange.getRequestMethod())) {
+      exchange.sendResponseHeaders(405, -1);
+      return;
+    }
+    String path = exchange.getRequestURI().getPath();
+    // Remove /static prefix
+    String resourcePath = path.substring("/static".length());
+    if (resourcePath.isEmpty() || resourcePath.equals("/")) {
+      resourcePath = "/index.html";
+    }
+
+    // Try loading from classpath (src/main/resources/static/)
+    String classpathResource = "/static" + resourcePath;
+    InputStream is = getClass().getResourceAsStream(classpathResource);
+
+    if (is == null) {
+      exchange.sendResponseHeaders(404, -1);
+      return;
+    }
+
+    byte[] body = is.readAllBytes();
+    is.close();
+
+    // Determine content type
+    String contentType = "application/octet-stream";
+    if (resourcePath.endsWith(".html")) contentType = "text/html; charset=utf-8";
+    else if (resourcePath.endsWith(".css")) contentType = "text/css; charset=utf-8";
+    else if (resourcePath.endsWith(".js")) contentType = "application/javascript; charset=utf-8";
+    else if (resourcePath.endsWith(".png")) contentType = "image/png";
+    else if (resourcePath.endsWith(".svg")) contentType = "image/svg+xml";
+    else if (resourcePath.endsWith(".json")) contentType = "application/json; charset=utf-8";
+
+    exchange.getResponseHeaders().add("Content-Type", contentType);
     exchange.getResponseHeaders().add("Cache-Control", "no-store");
+    exchange.sendResponseHeaders(200, body.length);
+    try (OutputStream out = exchange.getResponseBody()) {
+      out.write(body);
+    }
+  }
+
+  private void handleRepresentatives(HttpExchange exchange) throws IOException {
+    if (!"GET".equalsIgnoreCase(exchange.getRequestMethod())) {
+      exchange.sendResponseHeaders(405, -1);
+      return;
+    }
+    // Read representatives.json from config/
+    Path repsPath = Path.of("config/representatives.json");
+    if (!Files.exists(repsPath)) {
+      exchange.sendResponseHeaders(404, -1);
+      return;
+    }
+    byte[] body = Files.readAllBytes(repsPath);
+    exchange.getResponseHeaders().add("Content-Type", "application/json; charset=utf-8");
+    exchange.getResponseHeaders().add("Cache-Control", "no-store");
+    exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
     exchange.sendResponseHeaders(200, body.length);
     try (OutputStream out = exchange.getResponseBody()) {
       out.write(body);
@@ -389,3 +450,5 @@ public class PollingServer {
 """;
   }
 }
+
+
